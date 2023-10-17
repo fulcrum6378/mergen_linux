@@ -3,7 +3,7 @@
 #include "vis/camera.h"
 
 int main() {
-    // construct senses
+    // construct interactions
     auto *vis = new Camera();
     if (vis->exit != 0) return vis->exit;
     auto *aud = new Microphone();
@@ -11,7 +11,7 @@ int main() {
     auto *hpt = new Touchpad();
     if (hpt->exit != 0) return hpt->exit;
 
-    // destruct senses
+    // destruct interactions
     delete hpt;
     delete aud;
     delete vis;

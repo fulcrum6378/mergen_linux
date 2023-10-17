@@ -9,8 +9,12 @@ add_executable(MergenLinux
         aud/microphone.cpp
         aud/microphone.h
 
-        vis/camera.cpp
-        vis/camera.h
         hpt/touchpad.cpp
         hpt/touchpad.h
+
+        vis/camera.cpp
+        vis/camera.h
+        vis/segmentation.cpp
+        vis/segmentation.h
+        vis/bitmap.h
 )

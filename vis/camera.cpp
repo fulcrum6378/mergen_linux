@@ -1,7 +1,6 @@
 #include <csignal>
 #include <cstring>
 #include <fcntl.h>
-#include <fstream>
 #include <string>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
@@ -19,7 +18,7 @@ Camera::Camera() {
     }
     v4l2_capability capability{};
     if (ioctl(dev, VIDIOC_QUERYCAP, &capability) < 0) {
-        perror("The device cannot capture frame");
+        perror("This device cannot capture frames!");
         exit = 2;
         return;
     }
@@ -28,7 +27,7 @@ Camera::Camera() {
     imageFormat.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     imageFormat.fmt.pix.width = 640;
     imageFormat.fmt.pix.height = 480;
-    imageFormat.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV; // V4L2_PIX_FMT_MJPEG -> V4L2_PIX_FMT_YUYV
+    imageFormat.fmt.pix.pixelformat = V4L2_PIX_FMT_MJPEG; // V4L2_PIX_FMT_MJPEG -> V4L2_PIX_FMT_YUYV
     imageFormat.fmt.pix.field = V4L2_FIELD_NONE;
     ioctl(dev, VIDIOC_S_FMT, &imageFormat);
 
@@ -44,10 +43,10 @@ Camera::Camera() {
     queryBuffer.index = 0;
     ioctl(dev, VIDIOC_QUERYBUF, &queryBuffer);
 
-    arr = (char *) mmap(
+    buf = (char *) mmap(
             nullptr, queryBuffer.length, PROT_READ | PROT_WRITE, MAP_SHARED,
             dev, queryBuffer.m.offset);
-    memset(arr, 0, queryBuffer.length);
+    memset(buf, 0, queryBuffer.length);
 
     // v4l2_buffer
     memset(&buffer_info, 0, sizeof(buffer_info));
@@ -56,33 +55,19 @@ Camera::Camera() {
     buffer_info.index = 0;
     ioctl(dev, VIDIOC_STREAMON, &buffer_info.type);
 
-    Capture();
+    segmentation = new Segmentation(&buf);
+    Capture(); // TODO start a new thread
 }
 
 void Camera::Capture() {
     ioctl(dev, VIDIOC_QBUF, &buffer_info);
     ioctl(dev, VIDIOC_DQBUF, &buffer_info);
 
-    ofstream outFile;
-    outFile.open("../../test.yuv", ios::binary | ios::app);
-    __u32 bufPos = 0, outFileMemBlockSize = 0, remainingBufferSize = buffer_info.bytesused;
-    char *outFileMemBlock;
-    while (remainingBufferSize > 0) {
-        bufPos += outFileMemBlockSize;
-        outFileMemBlockSize = 1024;
-        outFileMemBlock = new char[sizeof(char) * outFileMemBlockSize];
-        memcpy(outFileMemBlock, arr + bufPos, outFileMemBlockSize);
-        outFile.write(outFileMemBlock, outFileMemBlockSize);
-        if (outFileMemBlockSize > remainingBufferSize)
-            outFileMemBlockSize = remainingBufferSize;
-        remainingBufferSize -= outFileMemBlockSize;
-
-        delete outFileMemBlock;
-    }
-    outFile.close();
+    segmentation->Process(buffer_info.bytesused);
 }
 
 Camera::~Camera() {
+    delete segmentation;
     ioctl(dev, VIDIOC_STREAMOFF, &buffer_info.type);
     close(dev);
 }
