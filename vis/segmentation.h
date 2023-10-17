@@ -3,10 +3,10 @@
 
 class Segmentation {
 private:
-    char **buf_;
+    unsigned char **buf_;
 
 public:
-    explicit Segmentation(char **buf);
+    explicit Segmentation(unsigned char **buf);
 
     void Process(__u32 bytesUsed);
 

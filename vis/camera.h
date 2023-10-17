@@ -22,7 +22,7 @@ private:
     v4l2_requestbuffers requestBuffer{0};
     v4l2_buffer queryBuffer{0};
     v4l2_buffer buffer_info{}; // FIXME WTF
-    char *buf;
+    unsigned char *buf;
 
     Segmentation *segmentation;
 

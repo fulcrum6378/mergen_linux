@@ -43,7 +43,7 @@ Camera::Camera() {
     queryBuffer.index = 0;
     ioctl(dev, VIDIOC_QUERYBUF, &queryBuffer);
 
-    buf = (char *) mmap(
+    buf = (unsigned char *) mmap(
             nullptr, queryBuffer.length, PROT_READ | PROT_WRITE, MAP_SHARED,
             dev, queryBuffer.m.offset);
     memset(buf, 0, queryBuffer.length);
@@ -63,7 +63,7 @@ void Camera::Capture() {
     ioctl(dev, VIDIOC_QBUF, &buffer_info);
     ioctl(dev, VIDIOC_DQBUF, &buffer_info);
 
-    segmentation->Process(buffer_info.bytesused);
+    segmentation->Process(buffer_info.length);
 }
 
 Camera::~Camera() {
