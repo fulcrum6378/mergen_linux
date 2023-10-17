@@ -14,11 +14,13 @@ Camera::Camera() {
     dev = open("/dev/video0", O_RDWR);
     if (dev < 0) {
         perror("Failed to open device!");
+        exit = 1;
         return;
     }
     v4l2_capability capability{};
     if (ioctl(dev, VIDIOC_QUERYCAP, &capability) < 0) {
         perror("The device cannot capture frame");
+        exit = 2;
         return;
     }
 
@@ -36,6 +38,7 @@ Camera::Camera() {
     requestBuffer.memory = V4L2_MEMORY_MMAP;
     ioctl(dev, VIDIOC_REQBUFS, &requestBuffer);
 
+    // v4l2_buffer
     queryBuffer.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     queryBuffer.memory = V4L2_MEMORY_MMAP;
     queryBuffer.index = 0;
@@ -46,11 +49,14 @@ Camera::Camera() {
             dev, queryBuffer.m.offset);
     memset(arr, 0, queryBuffer.length);
 
+    // v4l2_buffer
     memset(&buffer_info, 0, sizeof(buffer_info));
     buffer_info.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     buffer_info.memory = V4L2_MEMORY_MMAP;
     buffer_info.index = 0;
     ioctl(dev, VIDIOC_STREAMON, &buffer_info.type);
+
+    Capture();
 }
 
 void Camera::Capture() {

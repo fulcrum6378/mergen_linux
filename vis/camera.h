@@ -22,12 +22,12 @@ private:
     v4l2_buffer buffer_info{}; // FIXME WTF
     char *arr;
 
-    // void Capture();
+    void Capture();
 
 public:
-    Camera();
+    int exit = 0;
 
-    void Capture();
+    Camera();
 
     ~Camera();
 };
