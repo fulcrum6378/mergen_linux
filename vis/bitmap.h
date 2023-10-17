@@ -2,6 +2,7 @@
 #define VIS_BITMAP_H
 
 #include <fstream>
+#include <iostream>
 #include <thread>
 
 #define MAX(a, b) ({__typeof__(a) _a = (a); __typeof__(b) _b = (b); _a > _b ? _a : _b; })
@@ -46,7 +47,7 @@ const int kMaxChannelValue = 262143;
  * https://github.com/tensorflow/tensorflow/blob/5dcfc51118817f27fad5246812d83e5dccdc5f72/
  * tensorflow/tools/android/test/jni/yuv2rgb.cc
  */
-void bitmap(unsigned char **buf, char arr[480][640][3]) {
+void bitmap(unsigned char arr[480][640][3]) {
     std::ofstream bmp("../../out.bmp", std::ios::binary);
     int16_t width = 640, height = 480;
 
@@ -72,14 +73,14 @@ void bitmap(unsigned char **buf, char arr[480][640][3]) {
     bmp.write((char *) &dib_info, sizeof(dib_info));
 
     for (auto yy = (int16_t) (height - 1); yy >= 0; yy--) {
-        for (int16_t xx = 0; xx < width; xx += 2) {
-            bmp.put(arr[yy][xx][0]);
-            bmp.put(arr[yy][xx][1]);
-            bmp.put(arr[yy][xx][2]);
+        for (int16_t xx = 0; xx < width; xx += 2) { // BGR
+            bmp.put((char) arr[yy][xx][2]);
+            bmp.put((char) arr[yy][xx][1]);
+            bmp.put((char) arr[yy][xx][0]);
 
-            bmp.put(arr[yy][xx + 1][0]);
-            bmp.put(arr[yy][xx + 1][1]);
-            bmp.put(arr[yy][xx + 1][2]);
+            bmp.put((char) arr[yy][xx + 1][2]);
+            bmp.put((char) arr[yy][xx + 1][1]);
+            bmp.put((char) arr[yy][xx + 1][0]);
         }
         for (int i = 0; i < width % 4; i++) bmp.put(0);
     }

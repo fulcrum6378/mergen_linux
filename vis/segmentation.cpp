@@ -28,10 +28,12 @@ void Segmentation::Process(__u32 bytesUsed) {
     outFile.close();*/
 
     int16_t width = 640, height = 480;
-    char arr[480][640][3];
+    unsigned char arr[480][640][3];
 
-    for (int i = 0, j = 0; i < sizeof(arr) && j < bytesUsed; i += 6, j += 4) { // don't call `sizeof(*buf_)`
+    int i = 0;
+    for (int j = 0; j < bytesUsed; j += 4) { // never call `sizeof(*buf_)`
         double y, v, u, r, g, b;
+        int yy = (i / 3) / width, xx = (i / 3) % width;
 
         y = static_cast<double>((*buf_)[j + 0]); //y0
         u = static_cast<double>((*buf_)[j + 1]); //u0
@@ -45,11 +47,9 @@ void Segmentation::Process(__u32 bytesUsed) {
         if (g < 0) g = 0; else if (g > 255) g = 255;
         if (b < 0) b = 0; else if (b > 255) b = 255;
 
-        arr[j / width][j % width][0] = (char) r;
-        arr[j / width][j % width][1] = (char) g;
-        arr[j / width][j % width][2] = (char) b;
-
-        std::cout << (i / 3) / height << " x " << i % height << std::endl;
+        arr[yy][xx][0] = (char) r;
+        arr[yy][xx][1] = (char) g;
+        arr[yy][xx][2] = (char) b;
 
         //second pixel
         u = static_cast<double>((*buf_)[j + 1]); //u0
@@ -64,12 +64,14 @@ void Segmentation::Process(__u32 bytesUsed) {
         if (g < 0) g = 0; else if (g > 255) g = 255;
         if (b < 0) b = 0; else if (b > 255) b = 255;
 
-        arr[j / width][(j % width) + 1][0] = (char) r;
-        arr[j / width][(j % width) + 1][1] = (char) g;
-        arr[j / width][(j % width) + 1][2] = (char) b;
+        arr[yy][xx + 1][0] = (char) r;
+        arr[yy][xx + 1][1] = (char) g;
+        arr[yy][xx + 1][2] = (char) b;
+
+        i += 6;
     }
 
-    bitmap(buf_, arr);
+    bitmap(arr);
 }
 
 Segmentation::~Segmentation() = default;

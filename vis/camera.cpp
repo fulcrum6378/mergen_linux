@@ -27,7 +27,7 @@ Camera::Camera() {
     imageFormat.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     imageFormat.fmt.pix.width = 640;
     imageFormat.fmt.pix.height = 480;
-    imageFormat.fmt.pix.pixelformat = V4L2_PIX_FMT_MJPEG; // V4L2_PIX_FMT_MJPEG -> V4L2_PIX_FMT_YUYV
+    imageFormat.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV; // V4L2_PIX_FMT_MJPEG -> V4L2_PIX_FMT_YUYV
     imageFormat.fmt.pix.field = V4L2_FIELD_NONE;
     ioctl(dev, VIDIOC_S_FMT, &imageFormat);
 
@@ -63,11 +63,11 @@ void Camera::Capture() {
     ioctl(dev, VIDIOC_QBUF, &buffer_info);
     ioctl(dev, VIDIOC_DQBUF, &buffer_info);
 
-    segmentation->Process(buffer_info.length);
+    segmentation->Process(buffer_info.bytesused);
 }
 
 Camera::~Camera() {
     delete segmentation;
-    ioctl(dev, VIDIOC_STREAMOFF, &buffer_info.type);
+    ioctl(dev, VIDIOC_STREAMOFF, &buffer_info.bytesused);
     close(dev);
 }
