@@ -2,11 +2,6 @@
 #define VIS_BITMAP_H
 
 #include <fstream>
-#include <iostream>
-#include <thread>
-
-#define MAX(a, b) ({__typeof__(a) _a = (a); __typeof__(b) _b = (b); _a > _b ? _a : _b; })
-#define MIN(a, b) ({__typeof__(a) _a = (a); __typeof__(b) _b = (b); _a < _b ? _a : _b; })
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "OCUnusedGlobalDeclarationInspection"
@@ -39,14 +34,6 @@ struct bmpfile_dib_info {
 
 #pragma clang diagnostic pop
 
-const int kMaxChannelValue = 262143;
-
-
-/**
- * Yuv2Rgb algorithm is from:
- * https://github.com/tensorflow/tensorflow/blob/5dcfc51118817f27fad5246812d83e5dccdc5f72/
- * tensorflow/tools/android/test/jni/yuv2rgb.cc
- */
 void bitmap(unsigned char arr[480][640][3]) {
     std::ofstream bmp("../../out.bmp", std::ios::binary);
     int16_t width = 640, height = 480;
@@ -73,14 +60,23 @@ void bitmap(unsigned char arr[480][640][3]) {
     bmp.write((char *) &dib_info, sizeof(dib_info));
 
     for (auto yy = (int16_t) (height - 1); yy >= 0; yy--) {
-        for (int16_t xx = 0; xx < width; xx += 2) { // BGR
-            bmp.put((char) arr[yy][xx][2]);
-            bmp.put((char) arr[yy][xx][1]);
-            bmp.put((char) arr[yy][xx][0]);
+        for (int16_t xx = 0; xx < width; xx++) {
+            double y = static_cast<double>(arr[yy][xx][0]),
+                    u = static_cast<double>(arr[yy][xx][1]),
+                    v = static_cast<double>(arr[yy][xx][2]),
+                    r, g, b;
 
-            bmp.put((char) arr[yy][xx + 1][2]);
-            bmp.put((char) arr[yy][xx + 1][1]);
-            bmp.put((char) arr[yy][xx + 1][0]);
+            r = y + 1.4065 * (v - 128);                 //r0
+            g = y - 0.3455 * (u - 128) - 0.7169 * (v - 128); //g0
+            b = y + 1.1790 * (u - 128);                 //b0
+
+            if (r < 0) r = 0; else if (r > 255) r = 255;
+            if (g < 0) g = 0; else if (g > 255) g = 255;
+            if (b < 0) b = 0; else if (b > 255) b = 255;
+
+            bmp.put((char) b);
+            bmp.put((char) g);
+            bmp.put((char) r);
         }
         for (int i = 0; i < width % 4; i++) bmp.put(0);
     }

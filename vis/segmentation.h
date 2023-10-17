@@ -8,7 +8,7 @@ private:
 public:
     explicit Segmentation(unsigned char **buf);
 
-    void Process(__u32 bytesUsed);
+    void Process(uint32_t bytesUsed);
 
     ~Segmentation();
 };
