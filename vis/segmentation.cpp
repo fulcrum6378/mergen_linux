@@ -12,7 +12,6 @@ Segmentation::Segmentation(std::atomic_bool *on, unsigned char **buf, VisualSTM 
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "ConstantConditionsOC"
-#pragma ide diagnostic ignored "readability-non-const-parameter"
 #pragma ide diagnostic ignored "UnreachableCode"
 
 void Segmentation::Process() { // never use `sizeof(*buf_)`

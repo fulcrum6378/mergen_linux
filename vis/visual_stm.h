@@ -14,7 +14,7 @@ static float shape_point_max = 256.0;      // 256.0,    65535.0
 /** Visual Short-Term Memory */
 class VisualSTM {
 private:
-    const std::string visDirPath = "../../vis/out/";
+    const std::string dirOut = "../../vis/out/";
     // maximum frames allowed to be present in memory at a time
     const uint16_t max_frames_stored = 10;
     // forget N frames whenever hit the maximum

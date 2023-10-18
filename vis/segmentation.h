@@ -38,7 +38,7 @@ private:
     unsigned char arr[480][640][3]{}; // four bytes: b(1=true,0=false), Y, U, V
     // maps pixels to their Segment IDs
     uint32_t status[480][640]{};
-    // maps pixels to their Segment IDs
+    // maps pixels to their status of being border or not
     uint8_t b_status[480][640]{};
     // a vector containing all Segments
     std::vector<Segment> segments;
