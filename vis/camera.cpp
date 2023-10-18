@@ -1,24 +1,24 @@
 #include <csignal>
 #include <cstring>
 #include <fcntl.h>
-#include <string>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
+#include <thread>
 
 #include "camera.h"
 
 using namespace std;
 
-Camera::Camera() {
+Camera::Camera(atomic_bool *on) : on_(on) {
     dev = open("/dev/video0", O_RDWR);
     if (dev < 0) {
-        perror("Failed to open device!");
+        perror("Failed to open device");
         exit = 1;
         return;
     }
     v4l2_capability capability{};
     if (ioctl(dev, VIDIOC_QUERYCAP, &capability) < 0) {
-        perror("This device cannot capture frames!");
+        perror("This device cannot capture frames");
         exit = 2;
         return;
     }
@@ -55,19 +55,24 @@ Camera::Camera() {
     buffer_info.index = 0;
     ioctl(dev, VIDIOC_STREAMON, &buffer_info.type);
 
+    // prepare for analysis
     segmentation = new Segmentation(&buf);
-    Capture(); // TODO start a new thread
+    record = std::thread(&Camera::Record, this);
+    record.detach();
 }
 
-void Camera::Capture() {
-    ioctl(dev, VIDIOC_QBUF, &buffer_info);
-    ioctl(dev, VIDIOC_DQBUF, &buffer_info);
+void Camera::Record() {
+    while (on_) {
+        ioctl(dev, VIDIOC_QBUF, &buffer_info);
+        ioctl(dev, VIDIOC_DQBUF, &buffer_info);
 
-    segmentation->bufLength = buffer_info.bytesused;
-    segmentation->Process();
+        segmentation->bufLength = buffer_info.bytesused;
+        segmentation->Process();
+    }
 }
 
 Camera::~Camera() {
+    if (record.joinable()) record.join();
     delete segmentation;
     ioctl(dev, VIDIOC_STREAMOFF, &buffer_info.bytesused);
     close(dev);

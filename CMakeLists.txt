@@ -17,4 +17,5 @@ add_executable(MergenLinux
         vis/camera.h
         vis/segmentation.cpp
         vis/segmentation.h
+        global.h
 )

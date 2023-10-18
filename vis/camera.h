@@ -24,14 +24,16 @@ private:
     v4l2_buffer buffer_info{}; // FIXME WTF
     unsigned char *buf;
 
+    std::atomic_bool *on_;
+    std::thread record;
     Segmentation *segmentation;
 
-    void Capture();
+    void Record();
 
 public:
     int exit = 0;
 
-    Camera();
+    explicit Camera(std::atomic_bool *on);
 
     ~Camera();
 };

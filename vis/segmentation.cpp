@@ -3,6 +3,8 @@
 
 using namespace std;
 
+static int frame = 0;
+
 Segmentation::Segmentation(unsigned char **buf) : buf_(buf) {}
 
 void Segmentation::Process() { // never use `sizeof(*buf_)`
@@ -24,7 +26,8 @@ void Segmentation::Process() { // never use `sizeof(*buf_)`
         i += 6;
     }
 
-    //bitmap(arr);
+    bitmap(arr, "../" + to_string(frame) + ".bmp");
+    frame++;
 }
 
 Segmentation::~Segmentation() = default;
