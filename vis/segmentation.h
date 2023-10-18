@@ -6,9 +6,11 @@ private:
     unsigned char **buf_;
 
 public:
+    uint32_t bufLength{};
+
     explicit Segmentation(unsigned char **buf);
 
-    void Process(uint32_t bytesUsed);
+    void Process();
 
     ~Segmentation();
 };

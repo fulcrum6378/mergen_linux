@@ -12,9 +12,9 @@ add_executable(MergenLinux
         hpt/touchpad.cpp
         hpt/touchpad.h
 
+        vis/bitmap.h
         vis/camera.cpp
         vis/camera.h
         vis/segmentation.cpp
         vis/segmentation.h
-        vis/bitmap.h
 )

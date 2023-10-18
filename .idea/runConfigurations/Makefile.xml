@@ -1,7 +1,8 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Makefile" type="CLionNativeAppRunConfigurationType" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="MergenLinux" TARGET_NAME="MergenLinux" CONFIG_NAME="Debug" version="1" RUN_TARGET_PROJECT_NAME="MergenLinux" RUN_TARGET_NAME="MergenLinux">
-    <method v="2">
-      <option name="CLION.COMPOUND.BUILD" enabled="true" />
-    </method>
+  <configuration default="false" name="Makefile" type="MAKEFILE_TARGET_RUN_CONFIGURATION" factoryName="Makefile">
+    <makefile filename="$PROJECT_DIR$/Makefile" target="" workingDirectory="" arguments="">
+      <envs />
+    </makefile>
+    <method v="2" />
   </configuration>
 </component>

@@ -63,7 +63,8 @@ void Camera::Capture() {
     ioctl(dev, VIDIOC_QBUF, &buffer_info);
     ioctl(dev, VIDIOC_DQBUF, &buffer_info);
 
-    segmentation->Process(buffer_info.bytesused);
+    segmentation->bufLength = buffer_info.bytesused;
+    segmentation->Process();
 }
 
 Camera::~Camera() {
