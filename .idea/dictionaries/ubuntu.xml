@@ -5,6 +5,7 @@
       <w>hres</w>
       <w>mjpg</w>
       <w>requestbuffers</w>
+      <w>segs</w>
       <w>vres</w>
       <w>yuyv</w>
     </words>

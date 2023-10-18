@@ -33,7 +33,7 @@ private:
 public:
     int exit = 0;
 
-    explicit Camera(std::atomic_bool *on);
+    explicit Camera(std::atomic_bool *on, VisualSTM *stm);
 
     ~Camera();
 };

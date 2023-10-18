@@ -9,8 +9,11 @@
 int main() {
     static std::atomic_bool on = true;
 
+    // construct high-level objects
+    auto *visStm = new VisualSTM();
+
     // construct interactions
-    auto *vis = new Camera(&on);
+    auto *vis = new Camera(&on, visStm);
     if (vis->exit != 0) return vis->exit;
     auto *aud = new Microphone(&on);
     if (aud->exit != 0) return aud->exit;
@@ -33,6 +36,9 @@ int main() {
     delete hpt;
     delete aud;
     delete vis;
+
+    // destruct high-level objects
+    delete visStm;
 
     return 0;
 }

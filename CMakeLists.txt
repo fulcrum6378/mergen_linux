@@ -5,6 +5,7 @@ set(CMAKE_CXX_STANDARD 20)
 
 add_executable(MergenLinux
         main.cpp
+        global.h
 
         aud/microphone.cpp
         aud/microphone.h
@@ -17,5 +18,6 @@ add_executable(MergenLinux
         vis/camera.h
         vis/segmentation.cpp
         vis/segmentation.h
-        global.h
+        vis/visual_stm.cpp
+        vis/visual_stm.h
 )

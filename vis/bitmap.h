@@ -34,7 +34,7 @@ struct bmpfile_dib_info {
 
 #pragma clang diagnostic pop
 
-void bitmap(unsigned char arr[480][640][3], std::string path) {
+void bitmap(unsigned char arr[480][640][3], const std::string& path) {
     std::ofstream bmp(path, std::ios::binary);
     int16_t width = 640, height = 480;
 

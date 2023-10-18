@@ -14,3 +14,5 @@ camera.o : vis/camera.cpp
 	g++ -o build/makefile/vis/camera.o vis/camera.cpp
 segmentation.o : vis/segmentation.cpp
 	g++ -o build/makefile/vis/segmentation.o vis/segmentation.cpp
+visual_stm.o : vis/visual_stm.cpp
+	g++ -o build/makefile/vis/visual_stm.o vis/visual_stm.cpp
