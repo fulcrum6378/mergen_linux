@@ -48,7 +48,7 @@ void VisualSTM::Insert(
         uint8_t **m, // average colour
         uint16_t *w, uint16_t *h,  // width and height
         uint16_t cx, uint16_t cy, // central points
-        unordered_set<shape_point_t> *path
+        unordered_set<SHAPE_POINT_T> *path
 ) {
     auto r = (uint16_t) round(((float) *w / (float) *h) * 10.0);
 
@@ -61,7 +61,7 @@ void VisualSTM::Insert(
     shf.write((char *) h, 2); // Height
     shf.write((char *) &cx, 2); // Centre (X)
     shf.write((char *) &cy, 2); // Centre (Y)
-    for (shape_point_t p: *path)
+    for (SHAPE_POINT_T p: *path)
         shf.write((char *) &p, shape_point_bytes); // Point {X, Y}
     shf.close();
 
@@ -101,7 +101,7 @@ void VisualSTM::OnFrameFinished() {
 
     // check if some frames need to be forgotten
     framesStored++;
-    if (framesStored > max_frames_stored) Forget();
+    if (framesStored > MAX_FRAMES_STORED) Forget();
 
     nextFrameId++;
     // if (nextFrameId > 18446744073709552000) nextFrameId = 0;
@@ -109,7 +109,7 @@ void VisualSTM::OnFrameFinished() {
 
 void VisualSTM::Forget() {
     auto t = chrono::system_clock::now();
-    for (uint64_t f = earliestFrameId; f < earliestFrameId + forget_n_frames; f++) {
+    for (uint64_t f = earliestFrameId; f < earliestFrameId + FORGET_N_FRAMES; f++) {
         IterateIndex((dirFrame + to_string(f)).c_str(), [](VisualSTM *stm, uint16_t sid) -> void {
             uint8_t y, u, v;
             uint16_t r;
@@ -149,8 +149,8 @@ void VisualSTM::Forget() {
     SaveIndexes<uint8_t>(&vm, &dirV);
     SaveIndexes<uint16_t>(&rm, &dirRt);
 
-    earliestFrameId += forget_n_frames;
-    framesStored -= forget_n_frames;
+    earliestFrameId += FORGET_N_FRAMES;
+    framesStored -= FORGET_N_FRAMES;
     print("Forgetting time: %lld", chrono::duration_cast<chrono::milliseconds>(
             chrono::system_clock::now() - t).count());
 }

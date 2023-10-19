@@ -5,21 +5,22 @@
 #include <unordered_map>
 #include <unordered_set>
 
-// don't use namespace `std::`; it'll ruin indexing in CLion!
-using shape_point_t = uint16_t;            // uint16_t, uint32_t
+// Shapes' paths can be saved in 2 ways:      uint16_t, uint32_t
+#define SHAPE_POINT_T uint16_t
 static int8_t shape_point_bytes = 2;       // 2,        4
 static uint8_t shape_point_each_bits = 8;  // 8,        16
 static float shape_point_max = 256.0;      // 256.0,    65535.0
+// don't make them compiler-level constants, because of their types.
+
+// maximum frames allowed to be present in memory at a time
+#define MAX_FRAMES_STORED 10
+// forget N frames whenever hit the maximum
+#define FORGET_N_FRAMES 1
 
 /** Visual Short-Term Memory */
 class VisualSTM {
 private:
     const std::string dirOut = "../../vis/stm/";
-    // maximum frames allowed to be present in memory at a time
-    const uint16_t max_frames_stored = 10;
-    // forget N frames whenever hit the maximum
-    const uint64_t forget_n_frames = 1;
-
     std::string dirShapes = "shapes", dirFrame = "f", dirY = "y", dirU = "u", dirV = "v", dirRt = "r",
             savedStateFile = "saved_state";
     uint16_t nextShapeId = 0;
@@ -60,7 +61,7 @@ public:
             uint8_t **m, // average colour
             uint16_t *w, uint16_t *h, // width and height
             uint16_t cx, uint16_t cy, // central points
-            std::unordered_set<shape_point_t> *path
+            std::unordered_set<SHAPE_POINT_T> *path
     );
 
     /** Anything that needs to be done at the end. */
