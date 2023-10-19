@@ -14,7 +14,7 @@ static float shape_point_max = 256.0;      // 256.0,    65535.0
 /** Visual Short-Term Memory */
 class VisualSTM {
 private:
-    const std::string dirOut = "../../vis/out/";
+    const std::string dirOut = "../../vis/stm/";
     // maximum frames allowed to be present in memory at a time
     const uint16_t max_frames_stored = 10;
     // forget N frames whenever hit the maximum
@@ -22,7 +22,6 @@ private:
 
     std::string dirShapes = "shapes", dirFrame = "f", dirY = "y", dirU = "u", dirV = "v", dirRt = "r",
             savedStateFile = "saved_state";
-    uint64_t nextFrameId = 0;
     uint16_t nextShapeId = 0;
     // ID of earliest frame which is STILL available in memory
     uint64_t earliestFrameId = 0;
@@ -52,6 +51,8 @@ private:
     void SaveIndexes(std::unordered_map<INT, std::list<uint16_t>> *indexes, std::string *dir);
 
 public:
+    uint64_t nextFrameId = 0;
+
     VisualSTM();
 
     /** Inserts a new shape into memory. */

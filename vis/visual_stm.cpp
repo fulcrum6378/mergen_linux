@@ -54,9 +54,7 @@ void VisualSTM::Insert(
 
     // write shape file
     ofstream shf(dirShapes + to_string(nextShapeId), ios::binary);
-    shf.write((char *) &(*m)[0], 1); // Y
-    shf.write((char *) &(*m)[1], 1); // U
-    shf.write((char *) &(*m)[2], 1); // V TODO
+    shf.write((char *) *m, 3); // Mean Colour
     shf.write((char *) &r, 2); // Ratio
     shf.write((char *) &nextFrameId, 8); // Frame ID
     shf.write((char *) w, 2); // Width
@@ -192,6 +190,9 @@ void VisualSTM::RemoveFromIndex(list<uint16_t> *l, uint16_t id) {
     print("Shape %u was not found!", id);
 }
 
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "UnusedParameter" // true negative!
+
 template<class INT>
 void VisualSTM::SaveIndexes(unordered_map<INT, list<uint16_t>> *indexes, string *dir) {
     for (pair<const INT, list<uint16_t>> &index: (*indexes)) {
@@ -205,6 +206,8 @@ void VisualSTM::SaveIndexes(unordered_map<INT, list<uint16_t>> *indexes, string 
     }
     indexes->clear();
 }
+
+#pragma clang diagnostic pop
 
 void VisualSTM::SaveState() {
     ofstream ssf((dirOut + savedStateFile).c_str(), ios::binary);

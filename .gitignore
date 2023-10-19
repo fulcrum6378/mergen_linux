@@ -1,4 +1,3 @@
 /build/
-/aud/out/
-/hpt/out/
-/vis/out/
+/vis/bmp/
+/vis/stm/

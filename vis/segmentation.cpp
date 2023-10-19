@@ -1,5 +1,7 @@
 #include <chrono>
 #include <cstring>
+#include <filesystem>
+#include <sys/stat.h>
 
 #include "../global.h"
 #include "bitmap.h"
@@ -7,20 +9,31 @@
 
 using namespace std;
 
-Segmentation::Segmentation(std::atomic_bool *on, unsigned char **buf, VisualSTM *stm) :
-        on_(on), buf_(buf), stm(stm) {}
-
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "ConstantConditionsOC"
 #pragma ide diagnostic ignored "UnreachableCode"
 
-void Segmentation::Process() { // never use `sizeof(*buf_)`
+Segmentation::Segmentation(std::atomic_bool *on, unsigned char **buf, VisualSTM *stm) :
+        on_(on), buf_(buf), stm(stm) {
+
+    // prepare to save bitmaps if wanted
+    if (saveBitmaps) {
+        struct stat sb{};
+        if (stat(dirBitmap.c_str(), &sb) != 0)
+            mkdir(dirBitmap.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+        else
+            for (const auto &entry: std::filesystem::directory_iterator(dirBitmap))
+                std::filesystem::remove_all(entry.path());
+    }
+}
+
+void Segmentation::Process() {
 
     // 1. loading; bring separate YUV data into the multidimensional array of pixels `arr`
     auto t0 = chrono::system_clock::now();
     int i = 0;
     for (int j = 0; j < bufLength; j += 4) {
-        int yy = (i / 3) / 640, xx = (i / 3) % 640;
+        int yy = (i / 3) / w, xx = (i / 3) % w;
 
         // first pixel
         arr[yy][xx][0] = (*buf_)[j + 0];
@@ -34,7 +47,8 @@ void Segmentation::Process() { // never use `sizeof(*buf_)`
 
         i += 6;
     }
-    //bitmap(arr, "../" + to_string(frame) + ".bmp");
+    if (saveBitmaps)
+        bitmap(arr, dirBitmap + to_string(stm->nextFrameId) + ".bmp");
     auto delta1 = chrono::duration_cast<chrono::milliseconds>(
             chrono::system_clock::now() - t0).count();
 
@@ -248,7 +262,7 @@ bool Segmentation::CompareColours(unsigned char a[3], unsigned char b[3]) {
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "UnreachableCallsOfFunction"
 
-uint32_t Segmentation::FindPixelOfASegmentToDissolveIn(Segment *seg) const {
+uint32_t Segmentation::FindPixelOfASegmentToDissolveIn(Segment *seg) {
     uint32_t cor = seg->p.front();
     uint16_t a = cor >> 16, b = cor & 0xFFFF;
     if (a > 0)

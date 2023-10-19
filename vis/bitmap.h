@@ -34,21 +34,27 @@ struct bmpfile_dib_info {
 
 #pragma clang diagnostic pop
 
-void bitmap(unsigned char arr[480][640][3], const std::string& path) {
+static const int16_t w = 640, h = 480;
+static const std::string dirBitmap = "../../vis/bmp/";
+
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "UnreachableCode"
+#pragma ide diagnostic ignored "ConstantConditionsOC"
+
+[[maybe_unused]] void bitmap(unsigned char arr[h][w][3], const std::string &path) {
     std::ofstream bmp(path, std::ios::binary);
-    int16_t width = 640, height = 480;
 
     bmpfile_magic magic{'B', 'M'};
     bmp.write((char *) (&magic), sizeof(magic));
     bmpfile_header header = {0};
     header.bmp_offset =
             sizeof(bmpfile_magic) + sizeof(bmpfile_header) + sizeof(bmpfile_dib_info);
-    header.file_size = header.bmp_offset + (height * 3 + width % 4) * height;
+    header.file_size = header.bmp_offset + (h * 3 + w % 4) * h;
     bmp.write((char *) (&header), sizeof(header));
     bmpfile_dib_info dib_info = {0};
     dib_info.header_size = sizeof(bmpfile_dib_info);
-    dib_info.width = width;
-    dib_info.height = height;
+    dib_info.width = w;
+    dib_info.height = h;
     dib_info.num_planes = 1;
     dib_info.bits_per_pixel = 24;
     dib_info.compression = 0;
@@ -59,8 +65,8 @@ void bitmap(unsigned char arr[480][640][3], const std::string& path) {
     dib_info.num_important_colors = 0;
     bmp.write((char *) &dib_info, sizeof(dib_info));
 
-    for (auto yy = (int16_t) (height - 1); yy >= 0; yy--) {
-        for (int16_t xx = 0; xx < width; xx++) {
+    for (auto yy = (int16_t) (h - 1); yy >= 0; yy--) {
+        for (int16_t xx = 0; xx < w; xx++) {
             double y = static_cast<double>(arr[yy][xx][0]),
                     u = static_cast<double>(arr[yy][xx][1]),
                     v = static_cast<double>(arr[yy][xx][2]),
@@ -78,9 +84,11 @@ void bitmap(unsigned char arr[480][640][3], const std::string& path) {
             bmp.put((char) g);
             bmp.put((char) r);
         }
-        for (int i = 0; i < width % 4; i++) bmp.put(0);
+        for (int i = 0; i < (w % 4); i++) bmp.put(0); // both 'ide diagnostic' items are only for this line!
     }
     bmp.close();
 }
+
+#pragma clang diagnostic pop
 
 #endif //VIS_BITMAP_H

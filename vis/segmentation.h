@@ -28,18 +28,20 @@ private:
     unsigned char **buf_;
 
     // width, height
-    const uint16_t h = 480, w = 640;
+    static const uint16_t h = 480, w = 640;
     // minimum allowed number of pixels for a segment to contain
     const uint32_t min_seg_size = 1;
     // maximum allowed segments to be stored in the short-term memory
     const uint16_t max_segs = 10;
+    // whether of not shall it save bitmaps
+    const bool saveBitmaps = true;
 
-    // multidimensional array of pixels + last byte indicates whether it is a border pixel or not.
-    unsigned char arr[480][640][3]{}; // four bytes: b(1=true,0=false), Y, U, V
+    // multidimensional array of pixels
+    unsigned char arr[h][w][3]{};
     // maps pixels to their Segment IDs
-    uint32_t status[480][640]{};
+    uint32_t status[h][w]{};
     // maps pixels to their status of being border or not
-    uint8_t b_status[480][640]{};
+    uint8_t b_status[h][w]{};
     // a vector containing all Segments
     std::vector<Segment> segments;
     // simulates recursive programming (vector is always better for it than list!)
@@ -51,7 +53,7 @@ private:
 
     static bool CompareColours(unsigned char a[3], unsigned char b[3]);
 
-    uint32_t FindPixelOfASegmentToDissolveIn(Segment *seg) const;
+    static uint32_t FindPixelOfASegmentToDissolveIn(Segment *seg);
 
     // Checks if this pixel is in border.
     void CheckIfBorder(uint16_t y1, uint16_t x1, uint16_t y2, uint16_t x2);

@@ -21,7 +21,7 @@ private:
     v4l2_format imageFormat{};
     v4l2_requestbuffers requestBuffer{0};
     v4l2_buffer queryBuffer{0};
-    v4l2_buffer buffer_info{}; // FIXME WTF
+    v4l2_buffer buffer_info{};
     unsigned char *buf;
 
     std::atomic_bool *on_;

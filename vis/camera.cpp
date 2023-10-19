@@ -48,7 +48,7 @@ Camera::Camera(atomic_bool *on, VisualSTM *stm) : on_(on) {
             dev, queryBuffer.m.offset);
     memset(buf, 0, queryBuffer.length);
 
-    // v4l2_buffer
+    // v4l2_buffer (must necessarily be separate from `queryBuffer`)
     memset(&buffer_info, 0, sizeof(buffer_info));
     buffer_info.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     buffer_info.memory = V4L2_MEMORY_MMAP;
