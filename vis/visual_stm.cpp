@@ -94,6 +94,8 @@ void VisualSTM::Insert(
     ofstream rtf((dirRt + to_string(r)).c_str(), ios::app | ios::binary);
     rtf.write((char *) &nextShapeId, 2);
     rtf.close();
+    // FIXME nextShapeId is fine but AFTER being written jumps from 127 to 65408 !!!
+    //   while shapesInFrame is written without error!
 
     // save and increment shape ID
     shapesInFrame.push_back(nextShapeId);
@@ -174,7 +176,9 @@ void VisualSTM::IterateIndex(const char *path, void onEach(VisualSTM *, uint16_t
     ifstream sff(path, ios::binary);
     for (off_t _ = 0; _ < sb.st_size; _ += 2) {
         sff.read(buf, 2);
-        onEach(this, (buf[1] << 8) | buf[0]);
+        onEach(this, littleEndian
+                     ? ((buf[1] << 8) | buf[0])
+                     : ((buf[0] << 8) | buf[1]));
     }
     sff.close();
 }
