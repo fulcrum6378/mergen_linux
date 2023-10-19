@@ -1,18 +1,6 @@
-main.o : main.cpp
-	g++ -o build/makefile/main.o main.cpp
-
-# AUD
-microphone.o : aud/microphone.cpp
-	g++ -o build/makefile/aud/microphone.o aud/microphone.cpp
-
-# HPT
-touchpad.o : hpt/touchpad.cpp
-	g++ -o build/makefile/hpt/touchpad.o hpt/touchpad.cpp
-
-# VIS
-camera.o : vis/camera.cpp
-	g++ -o build/makefile/vis/camera.o vis/camera.cpp
-segmentation.o : vis/segmentation.cpp
-	g++ -o build/makefile/vis/segmentation.o vis/segmentation.cpp
-visual_stm.o : vis/visual_stm.cpp
-	g++ -o build/makefile/vis/visual_stm.o vis/visual_stm.cpp
+MergenLinux:
+	g++ -std=c++20 -o build/MergenLinux main.cpp \
+	aud/microphone.cpp \
+	hpt/touchpad.cpp \
+	vis/camera.cpp vis/segmentation.cpp vis/visual_stm.cpp
+	#./build/MergenLinux

@@ -35,7 +35,7 @@ struct bmpfile_dib_info {
 #pragma clang diagnostic pop
 
 static const int16_t w = 640, h = 480;
-static const std::string dirBitmap = "../../vis/bmp/";
+static const std::string dirBitmap = "vis/bmp/";
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "UnreachableCode"

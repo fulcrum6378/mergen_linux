@@ -2,6 +2,7 @@
 #define VIS_CAMERA_H
 
 #include <linux/videodev2.h>
+#include <thread>
 
 #include "segmentation.h"
 

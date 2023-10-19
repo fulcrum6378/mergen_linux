@@ -1,7 +1,10 @@
 #ifndef VIS_VISUAL_STM_H
 #define VIS_VISUAL_STM_H
 
+#include <bit>
+#include <cstdint>
 #include <list>
+#include <string>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -17,10 +20,15 @@ static float shape_point_max = 256.0;      // 256.0,    65535.0
 // forget N frames whenever hit the maximum
 #define FORGET_N_FRAMES 1
 
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "Simplify"
+static bool littleEndian = std::endian::native == std::endian::little;
+#pragma clang diagnostic pop
+
 /** Visual Short-Term Memory */
 class VisualSTM {
 private:
-    const std::string dirOut = "../../vis/stm/";
+    const std::string dirOut = "vis/stm/";
     std::string dirShapes = "shapes", dirFrame = "f", dirY = "y", dirU = "u", dirV = "v", dirRt = "r",
             savedStateFile = "saved_state";
     uint16_t nextShapeId = 0;

@@ -33,13 +33,23 @@ VisualSTM::VisualSTM() {
         ifstream ssf(savedStatePath, ios::binary);
         char buf[18];
         ssf.read(buf, sizeof(buf));
-        nextFrameId = ((uint64_t) buf[7] << 56) | ((uint64_t) buf[6] << 48) |
-                      ((uint64_t) buf[5] << 40) | ((uint64_t) buf[4] << 32) |
-                      (buf[3] << 24) | (buf[2] << 16) | (buf[1] << 8) | buf[0];
-        nextShapeId = (buf[9] << 8) | buf[8];
-        earliestFrameId = ((uint64_t) buf[17] << 56) | ((uint64_t) buf[16] << 48) |
-                          ((uint64_t) buf[15] << 40) | ((uint64_t) buf[14] << 32) |
-                          (buf[13] << 24) | (buf[12] << 16) | (buf[11] << 8) | buf[10];
+        nextFrameId = littleEndian
+                      ? (((uint64_t) buf[7] << 56) | ((uint64_t) buf[6] << 48) |
+                         ((uint64_t) buf[5] << 40) | ((uint64_t) buf[4] << 32) |
+                         (buf[3] << 24) | (buf[2] << 16) | (buf[1] << 8) | buf[0])
+                      : (((uint64_t) buf[0] << 56) | ((uint64_t) buf[1] << 48) |
+                         ((uint64_t) buf[2] << 40) | ((uint64_t) buf[3] << 32) |
+                         (buf[4] << 24) | (buf[5] << 16) | (buf[1] << 6) | buf[7]);
+        nextShapeId = littleEndian
+                      ? ((buf[9] << 8) | buf[8])
+                      : ((buf[8] << 8) | buf[9]);
+        earliestFrameId = littleEndian
+                          ? (((uint64_t) buf[17] << 56) | ((uint64_t) buf[16] << 48) |
+                             ((uint64_t) buf[15] << 40) | ((uint64_t) buf[14] << 32) |
+                             (buf[13] << 24) | (buf[12] << 16) | (buf[11] << 8) | buf[10])
+                          : (((uint64_t) buf[10] << 56) | ((uint64_t) buf[11] << 48) |
+                             ((uint64_t) buf[12] << 40) | ((uint64_t) buf[13] << 32) |
+                             (buf[14] << 24) | (buf[15] << 16) | (buf[16] << 8) | buf[17]);
         ssf.close();
     }
 }
@@ -122,7 +132,9 @@ void VisualSTM::Forget() {
             shf.read(reinterpret_cast<char *>(&v), 1);
             char buf[2];
             shf.read(buf, 2);
-            r = (buf[1] << 8) | buf[0];
+            r = littleEndian
+                ? ((buf[1] << 8) | buf[0])
+                : ((buf[0] << 8) | buf[1]);
             shf.close();
             remove(sPath.c_str());
 
@@ -175,7 +187,9 @@ list<uint16_t> VisualSTM::ReadIndex(const char *path) {
     list<uint16_t> l;
     for (off_t _ = 0; _ < sb.st_size; _ += 2) {
         sff.read(buf, 2);
-        l.push_back((buf[1] << 8) | buf[0]);
+        l.push_back(littleEndian
+                    ? ((buf[1] << 8) | buf[0])
+                    : ((buf[0] << 8) | buf[1]));
     }
     sff.close();
     return l;

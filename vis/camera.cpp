@@ -3,7 +3,6 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
-#include <thread>
 
 #include "camera.h"
 
@@ -62,7 +61,7 @@ Camera::Camera(atomic_bool *on, VisualSTM *stm) : on_(on) {
 }
 
 void Camera::Record() {
-    while (on_) {
+    while (*on_) {
         ioctl(dev, VIDIOC_QBUF, &buffer_info);
         ioctl(dev, VIDIOC_DQBUF, &buffer_info);
 
