@@ -208,12 +208,7 @@ void Segmentation::Process() {
 
     // 3. dissolution
     t0 = chrono::system_clock::now();
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "UnreachableCode"
-#pragma ide diagnostic ignored "Simplify"
-#pragma ide diagnostic ignored "readability-container-size-empty"
-#pragma ide diagnostic ignored "UnusedLocalVariable"
-#if MIN_SEG_SIZE > 1 && RG2 // TODO make it compiler-level in Android
+#if MIN_SEG_SIZE > 1 && !RG2
     uint32_t absorber_i, size_bef = segments.size(), removal = 1;
     Segment *absorber;
     for (int32_t seg = ((int32_t) size_bef) - 1; seg > -1; seg--)
@@ -233,7 +228,6 @@ void Segmentation::Process() {
 #else
     print("Total segments: %zu", segments.size());
 #endif
-#pragma clang diagnostic pop
     auto delta3 = chrono::duration_cast<chrono::milliseconds>(
             chrono::system_clock::now() - t0).count();
 
@@ -317,7 +311,7 @@ void Segmentation::Process() {
 
     // 6. store the segments
     t0 = chrono::system_clock::now();
-#if !RG2 // TODO
+#if !RG2
     sort(segments.begin(), segments.end(),
          [](const Segment &a, const Segment &b) { return a.p.size() > b.p.size(); });
     l_ = segments.size();
@@ -329,7 +323,7 @@ void Segmentation::Process() {
                     &segments[seg].border);
     }
     stm->OnFrameFinished();
-#else
+#else // TODO
     stm->nextFrameId++;
 #endif
     auto delta6 = chrono::duration_cast<chrono::milliseconds>(
