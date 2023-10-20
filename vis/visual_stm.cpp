@@ -96,6 +96,7 @@ void VisualSTM::Insert(
     rtf.close();
     // FIXME nextShapeId is fine but AFTER being written jumps from 127 to 65408 !!!
     //   while shapesInFrame is written without error!
+    // I tried `uint16_t sid = nextShapeId` and `reinterpret_cast<const char*>(&sid)`.
 
     // save and increment shape ID
     shapesInFrame.push_back(nextShapeId);

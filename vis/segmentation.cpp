@@ -1,7 +1,8 @@
 #include <chrono>
 #include <cstring>
 #include <filesystem>
-#include <sys/stat.h>
+#include <set> // RG2
+#include <sys/stat.h> // SAVE_BITMAPS
 
 #include "../global.h"
 #include "bitmap.h"
@@ -50,9 +51,10 @@ void Segmentation::Process() {
 
     // 2. segmentation
     t0 = chrono::system_clock::now();
+    uint32_t nextSeg = 1;
+#if !RG2
     uint16_t thisY = 0, thisX = 0;
     int64_t last; // must be signed
-    uint32_t nextSeg = 1;
     bool foundSthToAnalyse = true;
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "ConstantConditionsOC"
@@ -114,6 +116,93 @@ void Segmentation::Process() {
         }
         segments.push_back(seg);
     }
+#else
+    uint32_t nSeg, segmentOfAnyNeighbour = 0, chosenOne, removal = 1;
+    uint16_t ry, rx, by, bx, ly, lx, ty, tx;
+    bool anyQualified;
+    set<uint32_t> allowedRegions;
+    uint8_t nAllowedRegions = 0;
+    for (uint16_t y = 0; y < h; y++) {
+        for (uint16_t x = 0; x < w; x++) {
+            if (status[y][x] != 0) continue;
+
+            // analyse neighbours
+            nSeg = status[ry][rx];
+            if (x < (w - 1)) { // right
+                ry = y;
+                rx = x + 1;
+                if (CompareColours(arr[y][x], arr[ry][rx])) {
+                    anyQualified = true;
+                    if (nSeg != 0) allowedRegions.insert(nSeg);
+                }
+                if (nSeg != 0 && segmentOfAnyNeighbour != 0) segmentOfAnyNeighbour = nSeg;
+            }
+            nSeg = status[by][bx] != 0;
+            if (y < (h - 1)) { // bottom
+                by = y + 1;
+                bx = x;
+                if (CompareColours(arr[y][x], arr[by][bx])) {
+                    anyQualified = true;
+                    if (nSeg != 0) allowedRegions.insert(nSeg);
+                }
+                if (nSeg != 0 && segmentOfAnyNeighbour != 0) segmentOfAnyNeighbour = nSeg;
+            }
+            nSeg = status[ly][lx] != 0;
+            if (x > 0) { // left
+                ly = y;
+                lx = x - 1;
+                if (CompareColours(arr[y][x], arr[ly][lx])) {
+                    anyQualified = true;
+                    if (nSeg != 0) allowedRegions.insert(nSeg);
+                }
+                if (nSeg != 0 && segmentOfAnyNeighbour != 0) segmentOfAnyNeighbour = nSeg;
+            }
+            nSeg = status[ty][tx] != 0;
+            if (y > 0) { // top
+                ty = y - 1;
+                tx = x;
+                if (CompareColours(arr[y][x], arr[ty][tx])) {
+                    anyQualified = true;
+                    if (nSeg != 0) allowedRegions.insert(nSeg);
+                }
+                if (nSeg != 0 && segmentOfAnyNeighbour != 0) segmentOfAnyNeighbour = nSeg;
+            }
+
+            // determine the segment of this pixel
+            if (anyQualified) {
+                nAllowedRegions = allowedRegions.size();
+                if (nAllowedRegions == 0) {
+                    segments[nextSeg] = Segment{nextSeg};
+                    status[y][x] = nextSeg;
+                } else { // repair the pixels
+                    chosenOne = *allowedRegions.begin();
+                    for (uint32_t sid: allowedRegions)
+                        if (sid != chosenOne) {
+                            for (uint32_t changer: segments[sid].p) {
+                                segments[chosenOne].p.push_back(changer);
+                                status[changer >> 16][changer & 0xFFFF] = chosenOne;
+                            }
+                            segments.erase(sid);
+                        }
+                    status[y][x] = chosenOne;
+                }
+            } else {
+                if (segmentOfAnyNeighbour != 0)
+                    status[y][x] = segmentOfAnyNeighbour;
+                else {
+                    segments[nextSeg] = Segment{nextSeg};
+                    status[y][x] = nextSeg;
+                }
+            }
+            segments[nextSeg].p.push_back((y << 16) | x);
+
+            anyQualified = false;
+            allowedRegions.clear();
+            segmentOfAnyNeighbour = 0;
+            nextSeg++;
+        }
+    }
+#endif
     auto delta2 = chrono::duration_cast<chrono::milliseconds>(
             chrono::system_clock::now() - t0).count();
 
@@ -124,25 +213,26 @@ void Segmentation::Process() {
 #pragma ide diagnostic ignored "Simplify"
 #pragma ide diagnostic ignored "readability-container-size-empty"
 #pragma ide diagnostic ignored "UnusedLocalVariable"
-    if (MIN_SEG_SIZE > 1) {
-        uint32_t absorber_i, size_bef = segments.size(), removal = 1;
-        Segment *absorber;
-        for (int32_t seg = ((int32_t) size_bef) - 1; seg > -1; seg--)
-            if (segments[seg].p.size() < MIN_SEG_SIZE) {
-                absorber_i = FindPixelOfASegmentToDissolveIn(&segments[seg]);
-                if (absorber_i == 0xFFFFFFFF) continue;
-                absorber = &segments[status[absorber_i >> 16][absorber_i & 0xFFFF] - 1];
-                for (uint32_t &p: segments[seg].p) {
-                    absorber->p.push_back(p); // merge()
-                    status[p >> 16][p & 0xFFFF] = absorber->id;
-                }
-                swap(segments[seg], segments[size_bef - removal]);
-                removal++;
+#if MIN_SEG_SIZE > 1 && RG2 // TODO make it compiler-level in Android
+    uint32_t absorber_i, size_bef = segments.size(), removal = 1;
+    Segment *absorber;
+    for (int32_t seg = ((int32_t) size_bef) - 1; seg > -1; seg--)
+        if (segments[seg].p.size() < MIN_SEG_SIZE) {
+            absorber_i = FindPixelOfASegmentToDissolveIn(&segments[seg]);
+            if (absorber_i == 0xFFFFFFFF) continue;
+            absorber = &segments[status[absorber_i >> 16][absorber_i & 0xFFFF] - 1];
+            for (uint32_t &p: segments[seg].p) {
+                absorber->p.push_back(p); // merge()
+                status[p >> 16][p & 0xFFFF] = absorber->id;
             }
-        segments.resize(size_bef - (removal - 1));
-        print("Total segments: %zu / %u", segments.size(), size_bef);
-    } else
-        print("Total segments: %zu", segments.size());
+            swap(segments[seg], segments[size_bef - removal]);
+            removal++;
+        }
+    segments.resize(size_bef - (removal - 1));
+    print("Total segments: %zu / %u", segments.size(), size_bef);
+#else
+    print("Total segments: %zu", segments.size());
+#endif
 #pragma clang diagnostic pop
     auto delta3 = chrono::duration_cast<chrono::milliseconds>(
             chrono::system_clock::now() - t0).count();
@@ -154,7 +244,12 @@ void Segmentation::Process() {
     uint64_t aa, bb, cc;
     bool isFirst;
     uint16_t y, x;
+#if !RG2
     for (Segment &seg: segments) {
+#else
+        for (auto &ss: segments) {
+            Segment seg = ss.second;
+#endif
         // average colours of each segment
         aa = 0, bb = 0, cc = 0;
         for (uint32_t p: seg.p) {
@@ -222,6 +317,7 @@ void Segmentation::Process() {
 
     // 6. store the segments
     t0 = chrono::system_clock::now();
+#if !RG2 // TODO
     sort(segments.begin(), segments.end(),
          [](const Segment &a, const Segment &b) { return a.p.size() > b.p.size(); });
     l_ = segments.size();
@@ -233,6 +329,9 @@ void Segmentation::Process() {
                     &segments[seg].border);
     }
     stm->OnFrameFinished();
+#else
+    stm->nextFrameId++;
+#endif
     auto delta6 = chrono::duration_cast<chrono::milliseconds>(
             chrono::system_clock::now() - t0).count();
 
