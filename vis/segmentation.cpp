@@ -229,7 +229,7 @@ void Segmentation::Process() {
     // 4. average colours + detect boundaries
     t0 = chrono::system_clock::now();
     uint32_t l_;
-    unsigned char *col;
+    uint8_t *col;
     uint64_t aa, bb, cc;
     bool isFirst;
     uint16_t y, x;
@@ -291,7 +291,7 @@ void Segmentation::Process() {
                     SetAsBorder(y, x);
                     continue;
                 }
-                if (((b_status[y][x] >> 24) & 0xFF) == 1) continue;
+                if (b_status[y][x] == 1) continue;
                 CheckIfBorder(y, x, y, x + 1); //     eastern
                 CheckIfBorder(y, x, y + 1, x + 1); // south-eastern
                 CheckIfBorder(y, x, y + 1, x); //     southern
@@ -382,7 +382,7 @@ void Segmentation::CheckIfBorder(uint16_t y1, uint16_t x1, uint16_t y2, uint16_t
 }
 
 void Segmentation::SetAsBorder(uint16_t y, uint16_t x) {
-    b_status[y][x] |= 1 << 24;
+    b_status[y][x] |= 1;
 #if SAVE_BITMAPS == 2
     arr[y][x][0] = 76, arr[y][x][1] = 84, arr[y][x][2] = 255;
 #endif
