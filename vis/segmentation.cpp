@@ -30,17 +30,12 @@ void Segmentation::Process() {
     int i = 0;
     for (int j = 0; j < bufLength; j += 4) {
         int yy = (i / 3) / W, xx = (i / 3) % W;
-
-        // first pixel
-        arr[yy][xx][0] = (*buf_)[j + 0];
+        arr[yy][xx][0] = (*buf_)[j + 0]; // first pixel
         arr[yy][xx][1] = (*buf_)[j + 1];
         arr[yy][xx][2] = (*buf_)[j + 3];
-
-        //second pixel
-        arr[yy][xx + 1][0] = (*buf_)[j + 2];
+        arr[yy][xx + 1][0] = (*buf_)[j + 2]; // second pixel
         arr[yy][xx + 1][1] = (*buf_)[j + 1];
         arr[yy][xx + 1][2] = (*buf_)[j + 3];
-
         i += 6;
     }
 #if SAVE_BITMAPS == 1
@@ -57,7 +52,7 @@ void Segmentation::Process() {
     int64_t last; // must be signed
     bool foundSthToAnalyse = true;
 #pragma clang diagnostic push
-#pragma ide diagnostic ignored "ConstantConditionsOC"
+#pragma ide diagnostic ignored "ConstantConditionsOC" // false positive
     while (foundSthToAnalyse) {
 #pragma clang diagnostic pop
         foundSthToAnalyse = false;
@@ -74,7 +69,7 @@ void Segmentation::Process() {
         if (!foundSthToAnalyse) break;
 
         Segment seg{nextSeg};
-        stack.push_back(new uint16_t[3]{thisY, thisX, 0});
+        stack.push_back({thisY, thisX, 0});
         nextSeg++;
         uint16_t y, x, dr;
         while ((last = ((int64_t) stack.size()) - 1) != -1) {
@@ -84,31 +79,31 @@ void Segmentation::Process() {
                 status[y][x] = seg.id;
                 // left
                 stack[last][2]++;
-                if (x > 0 && status[y][x - 1] == 0 && CompareColours(arr[y][x], arr[y][x - 1])) {
-                    stack.push_back(new uint16_t[3]{y, static_cast<uint16_t>(x - 1), 0});
+                if (x > 0 && status[y][x - 1] == 0 && CompareColours(&arr[y][x], &arr[y][x - 1])) {
+                    stack.push_back({y, (uint16_t) (x - 1), 0});
                     continue;
                 }
             }
             if (dr <= 1) { // top
                 stack[last][2]++;
-                if (y > 0 && status[y - 1][x] == 0 && CompareColours(arr[y][x], arr[y - 1][x])) {
-                    stack.push_back(new uint16_t[3]{static_cast<uint16_t>(y - 1), x, 0});
+                if (y > 0 && status[y - 1][x] == 0 && CompareColours(&arr[y][x], &arr[y - 1][x])) {
+                    stack.push_back({(uint16_t) (y - 1), x, 0});
                     continue;
                 }
             }
             if (dr <= 2) { // right
                 stack[last][2]++;
                 if (x < (W - 1) && status[y][x + 1] == 0 &&
-                    CompareColours(arr[y][x], arr[y][x + 1])) {
-                    stack.push_back(new uint16_t[3]{y, static_cast<uint16_t>(x + 1), 0});
+                    CompareColours(&arr[y][x], &arr[y][x + 1])) {
+                    stack.push_back({y, (uint16_t) (x + 1), 0});
                     continue;
                 }
             }
             if (dr <= 3) { // bottom
                 stack[last][2]++;
                 if (y < (H - 1) && status[y + 1][x] == 0 &&
-                    CompareColours(arr[y][x], arr[y + 1][x])) {
-                    stack.push_back(new uint16_t[3]{static_cast<uint16_t>(y + 1), x, 0});
+                    CompareColours(&arr[y][x], &arr[y + 1][x])) {
+                    stack.push_back({(uint16_t) (y + 1), x, 0});
                     continue;
                 }
             }
@@ -323,8 +318,8 @@ void Segmentation::Process() {
                     &segments[seg].border);
     }
     stm->OnFrameFinished();
-#else // TODO
-    stm->nextFrameId++;
+#else
+    stm->nextFrameId++; // TO-DO
 #endif
     auto delta6 = chrono::duration_cast<chrono::milliseconds>(
             chrono::system_clock::now() - t0).count();
@@ -350,12 +345,12 @@ void Segmentation::Process() {
  * - There's no need for `static_cast<int16_t>`.
  * - `https://stackoverflow.com/questions/649454/what-is-the-best-way-to-average-two-colors-
  * that-define-a-linear-gradient` doesn't make a (big) difference.
- * - Geometric mean didn't work correctly (0,0,0).
+ * - Not a single type cast is needed.
  */
-bool Segmentation::CompareColours(unsigned char a[3], unsigned char b[3]) {
-    return abs((int16_t) a[0] - (int16_t) b[0]) <= 4 &&
-           abs((int16_t) a[1] - (int16_t) b[1]) <= 4 &&
-           abs((int16_t) a[2] - (int16_t) b[2]) <= 4;
+bool Segmentation::CompareColours(uint8_t (*a)[3], uint8_t (*b)[3]) {
+    return abs((*a)[0] - (*b)[0]) <= 4 &&
+           abs((*a)[1] - (*b)[1]) <= 4 &&
+           abs((*a)[2] - (*b)[2]) <= 4;
 }
 
 #pragma clang diagnostic push

@@ -1,6 +1,7 @@
 #ifndef VIS_SEGMENTATION_H
 #define VIS_SEGMENTATION_H
 
+#include <array>
 #include <atomic>
 #include <list>
 #include <unordered_map>
@@ -14,7 +15,7 @@
 // width of an image frame
 #define W 640
 // minimum allowed number of pixels for a segment to contain
-#define MIN_SEG_SIZE 1
+#define MIN_SEG_SIZE 8
 // maximum allowed segments to be stored in the short-term memory
 #define MAX_SEGS 10
 // 0=>no, 1=>yes, 2=>yes with border highlights
@@ -50,7 +51,7 @@ private:
 #if !RG2
     std::vector<Segment> segments;
     // simulates recursive programming (vector is always better for it than list!)
-    std::vector<uint16_t *> stack;
+    std::vector<std::array<uint16_t, 3>> stack;
 #else
     std::unordered_map<uint32_t, Segment> segments;
 #endif
@@ -59,7 +60,7 @@ private:
     // visual short-term memory (output)
     VisualSTM *stm;
 
-    static bool CompareColours(unsigned char a[3], unsigned char b[3]);
+    static bool CompareColours(uint8_t (*a)[3], uint8_t (*b)[3]);
 
     static uint32_t FindPixelOfASegmentToDissolveIn(Segment *seg);
 
