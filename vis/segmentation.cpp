@@ -4,8 +4,8 @@
 #include <set> // RG2
 #include <sys/stat.h> // SAVE_BITMAPS
 
-#include "../global.h"
-#include "bitmap.h"
+#include "../global.hpp"
+#include "bitmap.hpp"
 #include "segmentation.h"
 
 using namespace std;

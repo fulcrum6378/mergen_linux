@@ -1,4 +1,4 @@
-#include "touchpad.h"
+#include "touchpad.hpp"
 
 Touchpad::Touchpad(std::atomic_bool *on) : on_(on) {}
 

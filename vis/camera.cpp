@@ -4,7 +4,7 @@
 #include <sys/ioctl.h>
 #include <sys/mman.h>
 
-#include "camera.h"
+#include "camera.hpp"
 
 using namespace std;
 

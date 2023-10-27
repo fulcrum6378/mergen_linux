@@ -2,10 +2,10 @@
 #include <iostream>
 #include <thread>
 
-#include "global.h"
-#include "aud/microphone.h"
-#include "hpt/touchpad.h"
-#include "vis/camera.h"
+#include "global.hpp"
+#include "aud/microphone.hpp"
+#include "hpt/touchpad.hpp"
+#include "vis/camera.hpp"
 
 int main() {
     static std::atomic_bool on = true;
