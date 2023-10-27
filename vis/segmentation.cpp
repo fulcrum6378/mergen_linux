@@ -6,7 +6,7 @@
 
 #include "../global.hpp"
 #include "bitmap.hpp"
-#include "segmentation.h"
+#include "segmentation.hpp"
 
 using namespace std;
 

@@ -4,7 +4,7 @@
 #include <linux/videodev2.h>
 #include <thread>
 
-#include "segmentation.h"
+#include "segmentation.hpp"
 
 class Camera {
 private:

@@ -1,5 +1,5 @@
-#ifndef VIS_VISUAL_STM_H
-#define VIS_VISUAL_STM_H
+#ifndef VIS_VISUAL_LTM_H
+#define VIS_VISUAL_LTM_H
 
 #include <bit>
 #include <cstdint>
@@ -8,32 +8,28 @@
 #include <unordered_map>
 #include <unordered_set>
 
-// Shapes' paths can be saved in 2 ways:      uint16_t, uint32_t
-#define SHAPE_POINT_T uint16_t
-static int8_t shape_point_bytes = 2;       // 2,        4
-static uint8_t shape_point_each_bits = 8;  // 8,        16
-static float shape_point_max = 256.0;      // 256.0,    65535.0
-// don't make them compiler-level constants, because of their types.
+#include "binary_integers.hpp"
 
 // maximum frames allowed to be present in memory at a time
 #define MAX_FRAMES_STORED 10
 // forget N frames whenever hit the maximum
 #define FORGET_N_FRAMES 1
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "Simplify"
-static bool littleEndian = std::endian::native == std::endian::little;
-#pragma clang diagnostic pop
-
-/** Visual Short-Term Memory */
-class VisualSTM {
+/**
+ * Visual Long-Term Memory
+ *
+ * @see <a href="https://github.com/fulcrum6378/mycv/blob/master/storage/sequence_files_2.py">
+ * Sequence Files 2</a>
+ */
+class [[maybe_unused]] VisualLTM {
 private:
-    const std::string dirOut = "vis/stm/";
+    const std::string dirOut = "vis/ltm/";
     std::string dirShapes = "shapes", dirFrame = "f", dirY = "y", dirU = "u", dirV = "v", dirRt = "r",
             savedStateFile = "saved_state";
+    // shape ID incrementor
     uint16_t nextShapeId = 0;
     // ID of earliest frame which is STILL available in memory
-    uint64_t earliestFrameId = 0;
+    uint64_t firstFrameId = 0;
     // total number of frames available in memory
     uint16_t framesStored = 0;
     // IDs of shapes inside current frame
@@ -47,7 +43,7 @@ private:
     void Forget();
 
     /** Iterates on every ID in a Sequence File. */
-    void IterateIndex(const char *path, void onEach(VisualSTM *, uint16_t));
+    void IterateIndex(const char *path, void onEach(VisualLTM *, uint16_t));
 
     /** Reads an entire Sequence File. */
     static std::list<uint16_t> ReadIndex(const char *path);
@@ -60,12 +56,13 @@ private:
     void SaveIndexes(std::unordered_map<INT, std::list<uint16_t>> *indexes, std::string *dir);
 
 public:
+    // frame ID incrementor
     uint64_t nextFrameId = 0;
 
-    VisualSTM();
+    VisualLTM();
 
     /** Inserts a new shape into memory. */
-    void Insert(
+    [[maybe_unused]] void Insert(
             uint8_t **m, // average colour
             uint16_t *w, uint16_t *h, // width and height
             uint16_t cx, uint16_t cy, // central points
@@ -73,11 +70,11 @@ public:
     );
 
     /** Anything that needs to be done at the end. */
-    void OnFrameFinished();
+    [[maybe_unused]] void OnFrameFinished();
 
     /** Saves current state { nextFrameId, nextShapeId, earliestFrameId }
      * Don't save paths as variables in the constructor! */
-    void SaveState();
+    [[maybe_unused]] void SaveState();
 };
 
-#endif //VIS_VISUAL_STM_H
+#endif //VIS_VISUAL_LTM_H

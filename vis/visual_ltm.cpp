@@ -10,7 +10,7 @@
 
 using namespace std;
 
-VisualSTM::VisualSTM() {
+VisualLTM::VisualLTM() {
     // create directories if they don't exist and resolves their path variables
     struct stat sb{};
     string root;
@@ -27,34 +27,18 @@ VisualSTM::VisualSTM() {
             filesystem::directory_iterator(filesystem::path{dirFrame}))
         framesStored++;
 
-    // load saved state { nextFrameId, nextShapeId, earliestFrameId }
+    // load saved state { nextFrameId, firstFrameId, nextShapeId }
     string savedStatePath = dirOut + savedStateFile;
     if (filesystem::exists(savedStatePath)) {
         ifstream ssf(savedStatePath, ios::binary);
-        char buf[18];
-        ssf.read(buf, sizeof(buf));
-        nextFrameId = littleEndian
-                      ? (((uint64_t) buf[7] << 56) | ((uint64_t) buf[6] << 48) |
-                         ((uint64_t) buf[5] << 40) | ((uint64_t) buf[4] << 32) |
-                         (buf[3] << 24) | (buf[2] << 16) | (buf[1] << 8) | buf[0])
-                      : (((uint64_t) buf[0] << 56) | ((uint64_t) buf[1] << 48) |
-                         ((uint64_t) buf[2] << 40) | ((uint64_t) buf[3] << 32) |
-                         (buf[4] << 24) | (buf[5] << 16) | (buf[1] << 6) | buf[7]);
-        nextShapeId = littleEndian
-                      ? ((buf[9] << 8) | buf[8])
-                      : ((buf[8] << 8) | buf[9]);
-        earliestFrameId = littleEndian
-                          ? (((uint64_t) buf[17] << 56) | ((uint64_t) buf[16] << 48) |
-                             ((uint64_t) buf[15] << 40) | ((uint64_t) buf[14] << 32) |
-                             (buf[13] << 24) | (buf[12] << 16) | (buf[11] << 8) | buf[10])
-                          : (((uint64_t) buf[10] << 56) | ((uint64_t) buf[11] << 48) |
-                             ((uint64_t) buf[12] << 40) | ((uint64_t) buf[13] << 32) |
-                             (buf[14] << 24) | (buf[15] << 16) | (buf[16] << 8) | buf[17]);
+        nextFrameId = read_uint64(&ssf);
+        firstFrameId = read_uint64(&ssf);
+        nextShapeId = read_uint16(&ssf);
         ssf.close();
     }
 }
 
-void VisualSTM::Insert(
+[[maybe_unused]] void VisualLTM::Insert(
         uint8_t **m, // average colour
         uint16_t *w, uint16_t *h,  // width and height
         uint16_t cx, uint16_t cy, // central points
@@ -94,7 +78,7 @@ void VisualSTM::Insert(
     ofstream rtf((dirRt + to_string(r)).c_str(), ios::app | ios::binary);
     rtf.write((char *) &nextShapeId, 2);
     rtf.close();
-    // FIXME nextShapeId is fine but AFTER being written jumps from 127 to 65408 !!!
+    // FIX-ME nextShapeId is fine but AFTER being written jumps from 127 to 65408 !!!
     //   while shapesInFrame is written without error!
     // I tried `uint16_t sid = nextShapeId` and `reinterpret_cast<const char*>(&sid)`.
 
@@ -104,7 +88,7 @@ void VisualSTM::Insert(
     if (nextShapeId > 65535) nextShapeId = 0;
 }
 
-void VisualSTM::OnFrameFinished() {
+[[maybe_unused]] void VisualLTM::OnFrameFinished() {
     // save Frame Index
     ofstream f_f((dirFrame + to_string(nextFrameId)).c_str(), ios::binary);
     for (uint16_t sid: shapesInFrame)
@@ -120,10 +104,10 @@ void VisualSTM::OnFrameFinished() {
     // if (nextFrameId > 18446744073709552000) nextFrameId = 0;
 }
 
-void VisualSTM::Forget() {
+void VisualLTM::Forget() {
     auto t = chrono::system_clock::now();
-    for (uint64_t f = earliestFrameId; f < earliestFrameId + FORGET_N_FRAMES; f++) {
-        IterateIndex((dirFrame + to_string(f)).c_str(), [](VisualSTM *stm, uint16_t sid) -> void {
+    for (uint64_t f = firstFrameId; f < firstFrameId + FORGET_N_FRAMES; f++) {
+        IterateIndex((dirFrame + to_string(f)).c_str(), [](VisualLTM *stm, uint16_t sid) -> void {
             uint8_t y, u, v;
             uint16_t r;
 
@@ -133,29 +117,25 @@ void VisualSTM::Forget() {
             shf.read(reinterpret_cast<char *>(&y), 1);
             shf.read(reinterpret_cast<char *>(&u), 1);
             shf.read(reinterpret_cast<char *>(&v), 1);
-            char buf[2];
-            shf.read(buf, 2);
-            r = littleEndian
-                ? ((buf[1] << 8) | buf[0])
-                : ((buf[0] << 8) | buf[1]);
+            r = read_uint16(&shf);
             shf.close();
             remove(sPath.c_str());
 
             // read unread indices
             if (!stm->ym.contains(y))
-                stm->ym[y] = VisualSTM::ReadIndex((stm->dirY + to_string(y)).c_str());
+                stm->ym[y] = VisualLTM::ReadIndex((stm->dirY + to_string(y)).c_str());
             if (!stm->um.contains(u))
-                stm->um[u] = VisualSTM::ReadIndex((stm->dirU + to_string(u)).c_str());
+                stm->um[u] = VisualLTM::ReadIndex((stm->dirU + to_string(u)).c_str());
             if (!stm->vm.contains(v))
-                stm->vm[v] = VisualSTM::ReadIndex((stm->dirV + to_string(v)).c_str());
+                stm->vm[v] = VisualLTM::ReadIndex((stm->dirV + to_string(v)).c_str());
             if (!stm->rm.contains(r))
-                stm->rm[r] = VisualSTM::ReadIndex((stm->dirRt + to_string(r)).c_str());
+                stm->rm[r] = VisualLTM::ReadIndex((stm->dirRt + to_string(r)).c_str());
 
             // remove this shape ID from all indexes
-            VisualSTM::RemoveFromIndex(&stm->ym[y], sid);
-            VisualSTM::RemoveFromIndex(&stm->um[u], sid);
-            VisualSTM::RemoveFromIndex(&stm->vm[v], sid);
-            VisualSTM::RemoveFromIndex(&stm->rm[r], sid);
+            VisualLTM::RemoveFromIndex(&stm->ym[y], sid);
+            VisualLTM::RemoveFromIndex(&stm->um[u], sid);
+            VisualLTM::RemoveFromIndex(&stm->vm[v], sid);
+            VisualLTM::RemoveFromIndex(&stm->rm[r], sid);
         });
         remove((dirFrame + to_string(f)).c_str()); // don't put it in a variable
     }
@@ -164,43 +144,33 @@ void VisualSTM::Forget() {
     SaveIndexes<uint8_t>(&vm, &dirV);
     SaveIndexes<uint16_t>(&rm, &dirRt);
 
-    earliestFrameId += FORGET_N_FRAMES;
+    firstFrameId += FORGET_N_FRAMES;
     framesStored -= FORGET_N_FRAMES;
     print("Forgetting time: %lld", chrono::duration_cast<chrono::milliseconds>(
             chrono::system_clock::now() - t).count());
 }
 
-void VisualSTM::IterateIndex(const char *path, void onEach(VisualSTM *, uint16_t)) {
-    char buf[2];
+void VisualLTM::IterateIndex(const char *path, void onEach(VisualLTM *, uint16_t)) {
     struct stat sb{}; // never make it a class member!
     stat(path, &sb);
     ifstream sff(path, ios::binary);
-    for (off_t _ = 0; _ < sb.st_size; _ += 2) {
-        sff.read(buf, 2);
-        onEach(this, littleEndian
-                     ? ((buf[1] << 8) | buf[0])
-                     : ((buf[0] << 8) | buf[1]));
-    }
+    for (off_t _ = 0; _ < sb.st_size; _ += 2)
+        onEach(this, read_uint16(&sff));
     sff.close();
 }
 
-list<uint16_t> VisualSTM::ReadIndex(const char *path) {
-    char buf[2];
+list<uint16_t> VisualLTM::ReadIndex(const char *path) {
     struct stat sb{};
     stat(path, &sb);
     ifstream sff(path, ios::binary);
     list<uint16_t> l;
-    for (off_t _ = 0; _ < sb.st_size; _ += 2) {
-        sff.read(buf, 2);
-        l.push_back(littleEndian
-                    ? ((buf[1] << 8) | buf[0])
-                    : ((buf[0] << 8) | buf[1]));
-    }
+    for (off_t _ = 0; _ < sb.st_size; _ += 2)
+        l.push_back(read_uint16(&sff));
     sff.close();
     return l;
 }
 
-void VisualSTM::RemoveFromIndex(list<uint16_t> *l, uint16_t id) {
+void VisualLTM::RemoveFromIndex(list<uint16_t> *l, uint16_t id) {
     for (auto sid = begin(*l); sid != end(*l); ++sid)
         if (*sid == id) {
             l->erase(sid);
@@ -213,7 +183,7 @@ void VisualSTM::RemoveFromIndex(list<uint16_t> *l, uint16_t id) {
 #pragma ide diagnostic ignored "UnusedParameter" // true negative!
 
 template<class INT>
-void VisualSTM::SaveIndexes(unordered_map<INT, list<uint16_t>> *indexes, string *dir) {
+void VisualLTM::SaveIndexes(unordered_map<INT, list<uint16_t>> *indexes, string *dir) {
     for (pair<const INT, list<uint16_t>> &index: (*indexes)) {
         string path = (*dir) + to_string(index.first);
         if (!index.second.empty()) {
@@ -228,10 +198,10 @@ void VisualSTM::SaveIndexes(unordered_map<INT, list<uint16_t>> *indexes, string 
 
 #pragma clang diagnostic pop
 
-void VisualSTM::SaveState() {
+[[maybe_unused]] void VisualLTM::SaveState() {
     ofstream ssf((dirOut + savedStateFile).c_str(), ios::binary);
     ssf.write((char *) &nextFrameId, 8);
+    ssf.write((char *) &firstFrameId, 8);
     ssf.write((char *) &nextShapeId, 2);
-    ssf.write((char *) &earliestFrameId, 8);
     ssf.close();
 }

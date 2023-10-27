@@ -6,16 +6,18 @@
 #include "aud/microphone.hpp"
 #include "hpt/touchpad.hpp"
 #include "vis/camera.hpp"
+#include "vis/perception.hpp"
 
 int main() {
     static std::atomic_bool on = true;
 
     // construct high-level components
-    auto *visStm = new VisualSTM();
 
     // construct interactions
-    auto *vis = new Camera(&on, visStm);
-    if (vis->exit != 0) return vis->exit;
+    auto *vis2 = new Perception();
+    if (vis2->exit != 0) return vis2->exit;
+    auto *vis1 = new Camera(&on, vis2->stm);
+    if (vis1->exit != 0) return vis1->exit;
     auto *aud = new Microphone(&on);
     if (aud->exit != 0) return aud->exit;
     auto *hpt = new Touchpad(&on);
@@ -25,15 +27,15 @@ int main() {
     print("");
     std::cin.ignore();
     on = false;
-    std::this_thread::sleep_for(std::chrono::milliseconds(1200)); // unavoidable ensurance
+    std::this_thread::sleep_for(std::chrono::milliseconds(2000)); // unavoidable ensurance
 
     // destruct interactions
     delete hpt;
     delete aud;
-    delete vis;
+    delete vis1;
+    delete vis2;
 
     // destruct higher-level components
-    delete visStm;
 
     return 0;
 }

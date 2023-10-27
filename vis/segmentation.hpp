@@ -8,7 +8,7 @@
 #include <unordered_set>
 #include <vector>
 
-#include "visual_ltm.hpp"
+#include "visual_stm.hpp"
 
 // height of an image frame
 #define H 480

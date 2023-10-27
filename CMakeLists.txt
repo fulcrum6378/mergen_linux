@@ -13,13 +13,15 @@ add_executable(MergenLinux
         hpt/touchpad.cpp
         hpt/touchpad.hpp
 
+        vis/binary_integers.hpp
         vis/bitmap.hpp
         vis/camera.cpp
         vis/camera.hpp
         vis/segmentation.cpp
-        vis/segmentation.h
+        vis/segmentation.hpp
         vis/visual_ltm.cpp
         vis/visual_ltm.hpp
         vis/visual_stm.cpp
         vis/visual_stm.hpp
+        vis/perception.hpp
 )
