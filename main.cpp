@@ -27,7 +27,7 @@ int main() {
     print("");
     std::cin.ignore();
     on = false;
-    std::this_thread::sleep_for(std::chrono::milliseconds(2000)); // unavoidable ensurance
+    std::this_thread::sleep_for(std::chrono::milliseconds(1500)); // unavoidable ensurance
 
     // destruct interactions
     delete hpt;

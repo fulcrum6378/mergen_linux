@@ -1,6 +1,7 @@
 #ifndef VIS_VISUAL_STM_H
 #define VIS_VISUAL_STM_H
 
+#include <array>
 #include <map>
 #include <unordered_set>
 
@@ -24,10 +25,10 @@ private:
     const std::string dirOut = "vis/stm/";
     std::string dirShapes = "shapes", dirY = "y", dirU = "u", dirV = "v", dirR = "r",
             framesFile = "frames", numbersFile = "numbers";
-    // shape ID incrementor | ID of first shape in THIS FRAME
-    uint16_t nextShapeId = 0, firstShapeId = 0;
     // ID of earliest frame which is STILL available in memory
     uint64_t firstFrameId = 0;
+    // shape ID incrementor | ID of first shape in THIS FRAME
+    uint16_t nextShapeId = 0, firstShapeId = 0;
     // total number of frames available in memory
     uint16_t framesStored = 0;
     // frame index (8-bit)
@@ -40,11 +41,11 @@ private:
     /** Forgets N of oldest frames. */
     void Forget();
 
-    /** Reads an entire Sequence File and then deletes it. */
+    /** Reads all Sequence Files of an aspect and then deletes it. */
     template<class INT>
     static void ReadIndices(std::map<INT, std::unordered_set<uint16_t>> *indexes, std::string *dir);
 
-    /** Save all indexes as Sequence Files. */
+    /** Save all indices of an aspect as Sequence Files. */
     template<class INT>
     void SaveIndices(std::map<INT, std::unordered_set<uint16_t>> *indexes, std::string *dir);
 
@@ -56,7 +57,7 @@ public:
 
     /** Inserts a new shape into memory. */
     void Insert(
-            uint8_t **m, // average colour
+            std::array<uint8_t, 3> *m, // average colour
             uint16_t *w, uint16_t *h, // width and height
             uint16_t cx, uint16_t cy, // central points
             std::unordered_set<SHAPE_POINT_T> *path
@@ -65,7 +66,7 @@ public:
     /** Anything that needs to be done at the end. */
     void OnFrameFinished();
 
-    /** Saves current state { nextFrameId, nextShapeId, earliestFrameId }
+    /** Saves current state { nextFrameId, firstFrameId, nextShapeId }
      * Don't save paths as variables in the constructor! */
     void SaveState();
 };
