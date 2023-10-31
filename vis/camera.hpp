@@ -1,7 +1,7 @@
 #ifndef VIS_CAMERA_H
 #define VIS_CAMERA_H
 
-#include <linux/videodev2.h>
+#include <linux/videodev2.h> // structs and command constants sent to device
 #include <thread>
 
 #include "segmentation.hpp"

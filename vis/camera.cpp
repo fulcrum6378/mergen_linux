@@ -1,8 +1,7 @@
-#include <csignal>
-#include <cstring>
-#include <fcntl.h>
-#include <sys/ioctl.h>
-#include <sys/mman.h>
+#include <cstring> // memset
+#include <fcntl.h> // O_RDWR (oflag)
+#include <sys/ioctl.h> // ioctl
+#include <sys/mman.h> // PROT_READ, PROT_WRITE, MAP_SHARED
 
 #include "camera.hpp"
 
