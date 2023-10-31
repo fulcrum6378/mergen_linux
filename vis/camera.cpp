@@ -1,6 +1,6 @@
-#include <cstring> // memset
+#include <cstring>
 #include <fcntl.h> // O_RDWR (oflag)
-#include <sys/ioctl.h> // ioctl
+#include <sys/ioctl.h>
 #include <sys/mman.h> // PROT_READ, PROT_WRITE, MAP_SHARED
 
 #include "camera.hpp"
@@ -29,13 +29,13 @@ Camera::Camera(atomic_bool *on) : on_(on) {
     imageFormat.fmt.pix.field = V4L2_FIELD_NONE;
     ioctl(dev, VIDIOC_S_FMT, &imageFormat);
 
-    // v4l2_requestbuffers
+    v4l2_requestbuffers requestBuffer{};
     requestBuffer.count = 1; // one request buffer
     requestBuffer.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     requestBuffer.memory = V4L2_MEMORY_MMAP;
     ioctl(dev, VIDIOC_REQBUFS, &requestBuffer);
 
-    // v4l2_buffer
+    v4l2_buffer queryBuffer{};
     queryBuffer.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     queryBuffer.memory = V4L2_MEMORY_MMAP;
     queryBuffer.index = 0;

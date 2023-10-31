@@ -1,10 +1,14 @@
 #ifndef VIS_CAMERA_H
 #define VIS_CAMERA_H
 
-#include <linux/videodev2.h> // structs and command constants sent to device
 #include <thread>
 
 #include "segmentation.hpp"
+#ifdef __linux__
+#include <linux/videodev2.h>
+#else
+#include "videodev2.hpp"
+#endif
 
 class Camera {
 private:
@@ -20,8 +24,6 @@ private:
      * Display all data: $ v4l2-ctl --list-devices
      */
     v4l2_format imageFormat{};
-    v4l2_requestbuffers requestBuffer{0};
-    v4l2_buffer queryBuffer{0};
     v4l2_buffer buffer_info{};
     unsigned char *buf;
 

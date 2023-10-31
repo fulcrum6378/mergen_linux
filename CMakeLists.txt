@@ -21,6 +21,7 @@ add_executable(MergenLinux
         vis/segment.hpp
         vis/segmentation.cpp
         vis/segmentation.hpp
+        vis/videodev2.hpp
         vis/visual_stm.cpp
         vis/visual_stm.hpp
 )
