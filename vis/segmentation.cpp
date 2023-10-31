@@ -11,8 +11,8 @@
 
 using namespace std;
 
-Segmentation::Segmentation(std::atomic_bool *on, unsigned char **buf, VisualSTM *stm) :
-        on_(on), buf_(buf), stm(stm) {
+Segmentation::Segmentation(std::atomic_bool *on, unsigned char **buf) :
+        on_(on), buf_(buf), stm(new VisualSTM()) {
 
 #if SAVE_BITMAPS >= 1 // prepare to save bitmaps if wanted
     struct stat sb{};
@@ -28,16 +28,16 @@ void Segmentation::Process() {
 
     // 1. loading; bring separate YUV data into the multidimensional array of pixels `arr`
     auto t0 = chrono::system_clock::now();
-    int i = 0;
+    int off = 0;
     for (int j = 0; j < bufLength; j += 4) {
-        int yy = (i / 3) / W, xx = (i / 3) % W;
+        int yy = (off / 3) / W, xx = (off / 3) % W;
         arr[yy][xx][0] = (*buf_)[j + 0]; // first pixel
         arr[yy][xx][1] = (*buf_)[j + 1];
         arr[yy][xx][2] = (*buf_)[j + 3];
         arr[yy][xx + 1][0] = (*buf_)[j + 2]; // second pixel
         arr[yy][xx + 1][1] = (*buf_)[j + 1];
         arr[yy][xx + 1][2] = (*buf_)[j + 3];
-        i += 6;
+        off += 6;
     }
 #if SAVE_BITMAPS == 1
     bitmap(arr, dirBitmap + to_string(stm->nextFrameId) + ".bmp");
@@ -78,9 +78,9 @@ void Segmentation::Process() {
             if (dr == 0) {
                 seg.p.push_back((y << 16) | x);
 #if MIN_SEG_SIZE == 1 // add colours in order to compute their mean value later
-                seg.ys += arr[y][x][0];
-                seg.us += arr[y][x][1];
-                seg.vs += arr[y][x][2];
+                seg.ys += arr[y][x][0] * arr[y][x][0];
+                seg.us += arr[y][x][1] * arr[y][x][1];
+                seg.vs += arr[y][x][2] * arr[y][x][2];
 #endif
                 status[y][x] = seg.id;
                 // left
@@ -201,13 +201,13 @@ void Segmentation::Process() {
             nextSeg++;
         }
     }
-#endif
+#endif //RG2
     auto delta2 = chrono::duration_cast<chrono::milliseconds>(
             chrono::system_clock::now() - t0).count();
 
     // 3. dissolution
     t0 = chrono::system_clock::now();
-#if MIN_SEG_SIZE > 1 && !RG2
+#if MIN_SEG_SIZE != 1 && !RG2
     uint32_t absorber_i, size_bef = segments.size(), removal = 1;
     Segment *absorber;
     for (int32_t seg = static_cast<int32_t>(size_bef) - 1; seg > -1; seg--)
@@ -233,8 +233,8 @@ void Segmentation::Process() {
     // 4. average colours + detect boundaries
     t0 = chrono::system_clock::now();
     uint32_t l_;
-#if MIN_SEG_SIZE > 1
-    uint8_t *col;
+#if MIN_SEG_SIZE != 1
+    array<uint8_t, 3> *col;
     uint64_t ys, us, vs;
 #endif
     bool isFirst;
@@ -247,22 +247,24 @@ void Segmentation::Process() {
 #endif
         // average colours of each segment
         l_ = seg.p.size();
-#if MIN_SEG_SIZE > 1
+#if MIN_SEG_SIZE != 1
         ys = 0, us = 0, vs = 0;
         for (uint32_t p: seg.p) {
-            col = arr[p >> 16][p & 0xFFFF];
-            ys += col[0];
-            us += col[1];
-            vs += col[2];
+            col = reinterpret_cast<array<uint8_t, 3> *>(&arr[p >> 16][p & 0xFFFF]);
+            ys += (*col)[0] * (*col)[0]; // pow(, 2)
+            us += (*col)[1] * (*col)[1];
+            vs += (*col)[2] * (*col)[2];
         }
-        seg.m = {static_cast<uint8_t>(ys / l_),
-                 static_cast<uint8_t>(us / l_),
-                 static_cast<uint8_t>(vs / l_)};
+        seg.m = {static_cast<uint8_t>(sqrt(ys / l_)),
+                 static_cast<uint8_t>(sqrt(us / l_)),
+                 static_cast<uint8_t>(sqrt(vs / l_))};
 #else
-        seg.m = {static_cast<uint8_t>(seg.ys / l_),
-                 static_cast<uint8_t>(seg.us / l_),
-                 static_cast<uint8_t>(seg.vs / l_)};
+        seg.m = {static_cast<uint8_t>(sqrt(seg.ys / l_)),
+                 static_cast<uint8_t>(sqrt(seg.us / l_)),
+                 static_cast<uint8_t>(sqrt(seg.vs / l_))};
 #endif
+        // https://stackoverflow.com/questions/649454/what-is-the-best-way-to-average-two-colors-that-
+        // define-a-linear-gradient
 
         // detect boundaries (min_y, min_x, max_y, max_x)
         isFirst = true;
@@ -316,23 +318,90 @@ void Segmentation::Process() {
     auto delta5 = chrono::duration_cast<chrono::milliseconds>(
             chrono::system_clock::now() - t0).count();
 
-    // 6. store the segments
+    // 6. (save in VisualSTM and) track objects and measure their differences
     t0 = chrono::system_clock::now();
 #if !RG2
     sort(segments.begin(), segments.end(),
          [](const Segment &a, const Segment &b) { return a.p.size() > b.p.size(); });
+    float nearest_dist, dist;
+    int32_t best;
     l_ = segments.size();
-    for (uint16_t seg = 0; seg < MAX_SEGS; seg++) {// Segment &seg: segments
-        if (seg >= l_) break;
-        stm->Insert(&segments[seg].m, &segments[seg].w, &segments[seg].h,
-                    (segments[seg].min_x + segments[seg].max_x + 1) / 2, // central point X
-                    (segments[seg].min_y + segments[seg].max_y + 1) / 2, // central point Y
-                    &segments[seg].border);
-    }
-    stm->OnFrameFinished();
-#else
-    stm->nextFrameId++; // TO-DO
+    for (uint16_t sid = 0; sid < MAX_SEGS; sid++) {// Segment &seg: segments
+        if (sid >= l_) break;
+        Segment *seg = &segments[sid];
+        seg->ComputeRatioAndCentre();
+#if VISUAL_STM
+        stm->Insert(seg);
 #endif
+        if (!prev_segments.empty()) {
+            for (uint8_t y_ = seg->m[0] - Y_RADIUS; y_ < seg->m[0] + Y_RADIUS; y_++) {
+                auto it = yi.find(y_);
+                if (it == yi.end()) continue;
+                for (uint16_t i: (*it).second) a_y.insert(i);
+            }
+            for (uint8_t u_ = seg->m[1] - U_RADIUS; u_ < seg->m[1] + U_RADIUS; u_++) {
+                auto it = ui.find(u_);
+                if (it == ui.end()) continue;
+                for (uint16_t i: (*it).second) a_u.insert(i);
+            }
+            for (uint8_t v_ = seg->m[2] - V_RADIUS; v_ < seg->m[2] + V_RADIUS; v_++) {
+                auto it = vi.find(v_);
+                if (it == vi.end()) continue;
+                for (uint16_t i: (*it).second) a_v.insert(i);
+            }
+            for (uint16_t r_ = seg->r - R_RADIUS; r_ < seg->r + R_RADIUS; r_++) {
+                auto it = ri.find(r_);
+                if (it == ri.end()) continue;
+                for (uint16_t i: (*it).second) a_r.insert(i);
+            }
+            best = -1;
+            for (uint16_t can: a_y)
+                if (a_u.find(can) != a_u.end() && a_v.find(can) != a_v.end()
+                    && a_r.find(can) != a_r.end()) {
+                    Segment *prev_seg = &prev_segments[can];
+                    dist = static_cast<float>(sqrt(pow(seg->cx - prev_seg->cx, 2) +
+                                                   pow(seg->cy - prev_seg->cy, 2)));
+                    if (best == -1) { // NOLINT(bugprone-branch-clone)
+                        nearest_dist = dist;
+                        best = static_cast<int32_t>(can);
+                    } else if (dist < nearest_dist) {
+                        nearest_dist = dist;
+                        best = static_cast<int32_t>(can);
+                    } // else {don't set `best` here}
+                }
+            a_y.clear();
+            a_u.clear();
+            a_v.clear();
+            a_r.clear();
+            if (best != -1) {
+                Segment *prev_seg = &prev_segments[best];
+                diff[sid] = {
+                        best, static_cast<int32_t>(nearest_dist),
+                        prev_seg->w - seg->w, prev_seg->h - seg->h, prev_seg->r - seg->r,
+                        prev_seg->m[0] - seg->m[0], prev_seg->m[1] - seg->m[1],
+                        prev_seg->m[2] - seg->m[2],
+                };
+                /*LOGI("%u->%d : %d, %d, %d, %d, %d, %d, %d", sid, diff[sid][0], diff[sid][1],
+                     diff[sid][2], diff[sid][3], diff[sid][4],
+                     diff[sid][5], diff[sid][6], diff[sid][7]);*/
+            }/* else
+                LOGI("Segment %u was lost", sid);*/
+        }
+        // index segments of the current frame
+        _yi[seg->m[0]].insert(sid);
+        _ui[seg->m[1]].insert(sid);
+        _vi[seg->m[2]].insert(sid);
+        _ri[seg->r].insert(sid);
+    }
+    // replace indexes of the previous frame with the current one
+    yi = std::move(_yi);
+    ui = std::move(_ui);
+    vi = std::move(_vi);
+    ri = std::move(_ri);
+#if VISUAL_STM
+    stm->OnFrameFinished();
+#endif //VISUAL_STM
+#endif //RG2
     auto delta6 = chrono::duration_cast<chrono::milliseconds>(
             chrono::system_clock::now() - t0).count();
 
@@ -349,16 +418,10 @@ void Segmentation::Process() {
     memset(status, 0, sizeof(status));
     memset(b_status, 0, sizeof(b_status));
     s_index.clear();
-    segments.clear();
+    prev_segments = std::move(segments);
+    diff.clear();
 }
 
-/**
- * - `abs()` is much more efficient than `256 - static_cast<uint8_t>(a - b)`!
- * - There's no need for `static_cast<int16_t>`.
- * - `https://stackoverflow.com/questions/649454/what-is-the-best-way-to-average-two-colors-
- * that-define-a-linear-gradient` doesn't make a (big) difference.
- * - Not a single type cast is needed.
- */
 bool Segmentation::CompareColours(uint8_t (*a)[3], uint8_t (*b)[3]) {
     return abs((*a)[0] - (*b)[0]) <= 4 &&
            abs((*a)[1] - (*b)[1]) <= 4 &&
@@ -395,12 +458,14 @@ void Segmentation::SetAsBorder(uint16_t y, uint16_t x) {
 #endif
     Segment *seg = s_index[status[y][x]];
     seg->border.insert(
-            (static_cast<SHAPE_POINT_T>((shape_point_max / static_cast<float>(seg->w)) *
-                                        static_cast<float>(x - seg->min_x)) // fractional X
+            (static_cast<SHAPE_POINT_T>((shape_point_max / static_cast<float>(seg->h)) *
+                                        static_cast<float>(y - seg->min_y)) // fractional Y
                     << shape_point_each_bits) |
-            static_cast<SHAPE_POINT_T>((shape_point_max / static_cast<float>(seg->h)) *
-                                       static_cast<float>(y - seg->min_y))  // fractional Y
-    );
+            static_cast<SHAPE_POINT_T>((shape_point_max / static_cast<float>(seg->w)) *
+                                       static_cast<float>(x - seg->min_x))  // fractional X
+    ); // they get reversed in while writing to a file
 }
 
-Segmentation::~Segmentation() = default;
+Segmentation::~Segmentation() {
+    delete stm;
+}

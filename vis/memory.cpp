@@ -1,18 +1,16 @@
 #include <chrono>
-#include <cmath>
 #include <cstring>
 #include <filesystem>
 #include <fstream>
-#include <iterator>
 #include <sys/stat.h>
 
 #include "../global.hpp"
-#include "binary_integers.hpp"
-#include "visual_ltm.hpp"
+#include "segment.hpp"
+#include "memory.hpp"
 
 using namespace std;
 
-VisualLTM::VisualLTM() {
+VisMemory::VisMemory() {
     // create directories if they don't exist and resolves their path variables
     struct stat sb{};
     string root;
@@ -25,7 +23,7 @@ VisualLTM::VisualLTM() {
     }
 }
 
-[[maybe_unused]] void VisualLTM::Insert(
+[[maybe_unused]] void VisMemory::Insert(
         uint8_t **m, // average colour
         uint16_t *w, uint16_t *h,  // width and height
         uint16_t cx, uint16_t cy, // central points
@@ -77,10 +75,11 @@ VisualLTM::VisualLTM() {
     // I tried `uint16_t sid = nextShapeId` and `reinterpret_cast<const char*>(&sid)`.
 }
 
-[[maybe_unused]] void VisualLTM::Forget() {
+[[maybe_unused]] void VisMemory::Forget() {
     auto t = chrono::system_clock::now();
-    for (uint64_t f = firstFrameId; f < firstFrameId + FORGET_N_FRAMES; f++) {
-        IterateIndex((/*dirFrame + */to_string(f)).c_str(), [](VisualLTM *ltm, uint16_t sid) -> void {
+    for (uint64_t f = firstFrameId; f < firstFrameId + 1; f++) {
+        IterateIndex((/*dirFrame + */to_string(f)).c_str(), [](VisMemory *ltm, uint16_t sid
+        ) -> void {
             uint8_t y, u, v;
             uint16_t r;
 
@@ -98,19 +97,19 @@ VisualLTM::VisualLTM() {
 
             // read unread indices
             if (!ltm->ym.contains(y))
-                ltm->ym[y] = VisualLTM::ReadIndex((ltm->dirY + to_string(y)).c_str());
+                ltm->ym[y] = VisMemory::ReadIndex((ltm->dirY + to_string(y)).c_str());
             if (!ltm->um.contains(u))
-                ltm->um[u] = VisualLTM::ReadIndex((ltm->dirU + to_string(u)).c_str());
+                ltm->um[u] = VisMemory::ReadIndex((ltm->dirU + to_string(u)).c_str());
             if (!ltm->vm.contains(v))
-                ltm->vm[v] = VisualLTM::ReadIndex((ltm->dirV + to_string(v)).c_str());
+                ltm->vm[v] = VisMemory::ReadIndex((ltm->dirV + to_string(v)).c_str());
             if (!ltm->rm.contains(r))
-                ltm->rm[r] = VisualLTM::ReadIndex((ltm->dirR + to_string(r)).c_str());
+                ltm->rm[r] = VisMemory::ReadIndex((ltm->dirR + to_string(r)).c_str());
 
             // remove this shape ID from all indexes
-            VisualLTM::RemoveFromIndex(&ltm->ym[y], sid);
-            VisualLTM::RemoveFromIndex(&ltm->um[u], sid);
-            VisualLTM::RemoveFromIndex(&ltm->vm[v], sid);
-            VisualLTM::RemoveFromIndex(&ltm->rm[r], sid);
+            VisMemory::RemoveFromIndex(&ltm->ym[y], sid);
+            VisMemory::RemoveFromIndex(&ltm->um[u], sid);
+            VisMemory::RemoveFromIndex(&ltm->vm[v], sid);
+            VisMemory::RemoveFromIndex(&ltm->rm[r], sid);
         });
         remove((/*dirFrame + */to_string(f)).c_str()); // don't put it in a variable
     }
@@ -119,12 +118,12 @@ VisualLTM::VisualLTM() {
     SaveIndexes<uint8_t>(&vm, &dirV);
     SaveIndexes<uint16_t>(&rm, &dirR);
 
-    firstFrameId += FORGET_N_FRAMES;
+    firstFrameId += 1;
     print("Forgetting time: %lld", chrono::duration_cast<chrono::milliseconds>(
             chrono::system_clock::now() - t).count());
 }
 
-void VisualLTM::IterateIndex(const char *path, void onEach(VisualLTM *, uint16_t)) {
+void VisMemory::IterateIndex(const char *path, void onEach(VisMemory *, uint16_t)) {
     struct stat sb{}; // never make it a class member!
     stat(path, &sb);
     char buf[sb.st_size];
@@ -138,7 +137,7 @@ void VisualLTM::IterateIndex(const char *path, void onEach(VisualLTM *, uint16_t
     }
 }
 
-list<uint16_t> VisualLTM::ReadIndex(const char *path) {
+list<uint16_t> VisMemory::ReadIndex(const char *path) {
     struct stat sb{};
     stat(path, &sb);
     char buf[sb.st_size];
@@ -154,7 +153,7 @@ list<uint16_t> VisualLTM::ReadIndex(const char *path) {
     return l;
 }
 
-void VisualLTM::RemoveFromIndex(list<uint16_t> *l, uint16_t id) {
+void VisMemory::RemoveFromIndex(list<uint16_t> *l, uint16_t id) {
     for (auto sid = begin(*l); sid != end(*l); ++sid)
         if (*sid == id) {
             l->erase(sid);
@@ -167,7 +166,7 @@ void VisualLTM::RemoveFromIndex(list<uint16_t> *l, uint16_t id) {
 #pragma ide diagnostic ignored "UnusedParameter" // true negative!
 
 template<class INT>
-void VisualLTM::SaveIndexes(unordered_map<INT, list<uint16_t>> *indexes, string *dir) {
+void VisMemory::SaveIndexes(unordered_map<INT, list<uint16_t>> *indexes, string *dir) {
     string path;
     uint32_t off;
     for (pair<const INT, list<uint16_t>> &index: (*indexes)) {

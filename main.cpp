@@ -6,34 +6,30 @@
 #include "aud/microphone.hpp"
 #include "hpt/touchpad.hpp"
 #include "vis/camera.hpp"
-#include "vis/perception.hpp"
 
 int main() {
     static std::atomic_bool on = true;
 
     // construct high-level components
 
-    // construct interactions
-    auto *vis2 = new Perception();
-    if (vis2->exit != 0) return vis2->exit;
-    auto *vis1 = new Camera(&on, vis2->stm);
-    if (vis1->exit != 0) return vis1->exit;
-    auto *aud = new Microphone(&on);
-    if (aud->exit != 0) return aud->exit;
+    // construct low-level components (sensors/controls)
+    auto *aud_in = new Microphone(&on);
+    if (aud_in->exit != 0) return aud_in->exit;
     auto *hpt = new Touchpad(&on);
     if (hpt->exit != 0) return hpt->exit;
+    auto *vis = new Camera(&on);
+    if (vis->exit != 0) return vis->exit;
 
     // listen for a stop signal
     print("");
     std::cin.ignore();
     on = false;
-    std::this_thread::sleep_for(std::chrono::milliseconds(1500)); // unavoidable ensurance
+    std::this_thread::sleep_for(std::chrono::milliseconds(2000)); // unavoidable ensurance
 
-    // destruct interactions
+    // destruct low-level components
+    delete aud_in;
     delete hpt;
-    delete aud;
-    delete vis1;
-    delete vis2;
+    delete vis;
 
     // destruct higher-level components
 

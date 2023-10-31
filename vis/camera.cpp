@@ -8,7 +8,7 @@
 
 using namespace std;
 
-Camera::Camera(atomic_bool *on, VisualSTM *stm) : on_(on) {
+Camera::Camera(atomic_bool *on) : on_(on) {
     dev = open("/dev/video0", O_RDWR);
     if (dev < 0) {
         perror("Failed to open device");
@@ -55,7 +55,7 @@ Camera::Camera(atomic_bool *on, VisualSTM *stm) : on_(on) {
     ioctl(dev, VIDIOC_STREAMON, &buffer_info.type);
 
     // prepare for analysis
-    segmentation = new Segmentation(on_, &buf, stm);
+    segmentation = new Segmentation(on_, &buf);
     record = std::thread(&Camera::Record, this);
     record.detach();
 }

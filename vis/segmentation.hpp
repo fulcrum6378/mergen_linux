@@ -3,7 +3,7 @@
 
 #include <array>
 #include <atomic>
-#include <list>
+#include <map>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -14,31 +14,19 @@
 #define H 480
 // width of an image frame
 #define W 640
-// minimum allowed number of pixels for a segment to contain
-#define MIN_SEG_SIZE 8
-// maximum allowed segments to be stored in the short-term memory
-#define MAX_SEGS 10
 // 0=>no, 1=>yes, 2=>yes with border highlights
 #define SAVE_BITMAPS 2
 // enable method "Region Growing 2" in favour of the 4th
 #define RG2 false
-
-struct Segment {
-    // starting from 1
-    uint32_t id;
-    // pixel coordinates
-    std::list<uint32_t> p;
-#if MIN_SEG_SIZE == 1
-    // sum of colours
-    uint64_t ys, us, vs;
-#endif
-    // average colour
-    std::array<uint8_t, 3> m;
-    // boundaries and dimensions
-    uint16_t min_y, min_x, max_y, max_x, w, h;
-    // border pixels
-    std::unordered_set<SHAPE_POINT_T> border;
-};
+// maximum allowed segments to be analysed extensively
+#define MAX_SEGS 20
+// radii for searching through Volatile Indices
+#define Y_RADIUS 15
+#define U_RADIUS 10
+#define V_RADIUS 10
+#define R_RADIUS 15
+// debug the results using VisualSTM
+#define VISUAL_STM true
 
 /**
  * Image Segmentation, using a Region-Growing method
@@ -47,6 +35,8 @@ struct Segment {
  * Region Growing 4 (image segmentation)</a>
  * @see <a href="https://github.com/fulcrum6378/mycv/blob/master/tracing/comprehender_rg4.py">
  * Comprehender (image tracing)</a>
+ * @see <a href="https://github.com/fulcrum6378/mycv/blob/master/perception/tracking.py">
+ * Tracking (object tracking)</a>
  */
 class Segmentation {
 private:
@@ -59,18 +49,29 @@ private:
     uint32_t status[H][W]{};
     // maps pixels to their status of being border or not
     uint8_t b_status[H][W]{};
-    // a vector containing all Segments
+    // a vector containing all Segments of { current frame | previous frame }
 #if !RG2
-    std::vector<Segment> segments;
+    std::vector<Segment> segments, prev_segments;
     // simulates recursive programming (vector is always better for it than list!)
     std::vector<std::array<uint16_t, 3>> stack;
 #else
-    std::unordered_map<uint32_t, Segment> segments;
+    std::unordered_map<uint32_t, Segment> segments, prev_segments;
 #endif
     // maps IDs of Segments to their pointers
     std::unordered_map<uint32_t, Segment *> s_index;
-    // visual short-term memory (output)
+
+    // 8-bit volatile indices (those preceding with `_` temporarily contain indices of current frame)
+    std::map<uint8_t, std::unordered_set<uint16_t>> yi, _yi, ui, _ui, vi, _vi;
+    // 16-bit volatile indices
+    std::map<uint16_t, std::unordered_set<uint16_t>> ri, _ri;
+    // helper containers for finding nearest candidates while object tracking
+    std::unordered_set<uint16_t> a_y, a_u, a_v, a_r;
+    // a final map for tracking visual objects and explaining their differences
+    std::unordered_map<uint16_t, std::vector<int32_t>> diff;
+
+#if VISUAL_STM
     VisualSTM *stm;
+#endif
 
     static bool CompareColours(uint8_t (*a)[3], uint8_t (*b)[3]);
 
@@ -85,7 +86,7 @@ private:
 public:
     uint32_t bufLength{};
 
-    explicit Segmentation(std::atomic_bool *on, unsigned char **buf, VisualSTM *stm);
+    explicit Segmentation(std::atomic_bool *on, unsigned char **buf);
 
     void Process();
 
