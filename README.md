@@ -12,8 +12,8 @@ as [*videodev2.hpp*](vis/videodev2.hpp), I finally made it run on FreeBSD.
 
 ### Compilation
 
-- [*GNUmakefile*](GNUmakefile) for **Linux**
-- [*Makefile*](Makefile) for **FreeBSD**
+- [GNUmakefile](GNUmakefile) for **Linux**
+- [Makefile](Makefile) for **FreeBSD**
 
 But the only thing you need to do regardless of your OS, is to open terminal in the project folder and call:
 
