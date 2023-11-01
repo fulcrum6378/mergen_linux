@@ -4,6 +4,7 @@
       <w>bmpfile</w>
       <w>buffersize</w>
       <w>bytesperline</w>
+      <w>bytesused</w>
       <w>clipcount</w>
       <w>comprehender</w>
       <w>dmabuf</w>
@@ -24,6 +25,7 @@
       <w>sizeimage</w>
       <w>streamoff</w>
       <w>streamon</w>
+      <w>userbits</w>
       <w>userptr</w>
       <w>verkuil</w>
       <w>vidioc</w>

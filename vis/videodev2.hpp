@@ -56,10 +56,8 @@
 #ifndef LINUX_VIDEODEV2_H
 #define LINUX_VIDEODEV2_H
 
-#include <asm-generic/int-ll64.h>
+#include <cstdint>
 #include <ctime>
-
-#define VIDEO_MAX_PLANES               8
 
 /*
  * I O C T L   C O D E S   F O R   V I D E O   D E V I C E S
@@ -75,23 +73,25 @@
 
 /*  Four-character-code (FOURCC) */
 #define v4l2_fourcc(a, b, c, d)\
-    ((__u32)(a) | ((__u32)(b) << 8) | ((__u32)(c) << 16) | ((__u32)(d) << 24))
+    ((uint32_t)(a) | ((uint32_t)(b) << 8) | ((uint32_t)(c) << 16) | ((uint32_t)(d) << 24))
 
 /* Luminance+Chrominance formats */
 #define V4L2_PIX_FMT_YUYV    v4l2_fourcc('Y', 'U', 'Y', 'V') /* 16  YUV 4:2:2     */
+
+#define VIDEO_MAX_PLANES               8
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "OCUnusedGlobalDeclarationInspection"
 #pragma ide diagnostic ignored "UnusedLocalVariable"
 
 struct v4l2_capability {
-    __u8 driver[16];
-    __u8 card[32];
-    __u8 bus_info[32];
-    __u32 version;
-    __u32 capabilities;
-    __u32 device_caps;
-    __u32 reserved[3];
+    uint8_t driver[16];
+    uint8_t card[32];
+    uint8_t bus_info[32];
+    uint32_t version;
+    uint32_t capabilities;
+    uint32_t device_caps;
+    uint32_t reserved[3];
 };
 
 enum v4l2_buf_type {
@@ -120,60 +120,60 @@ enum v4l2_field {
 };
 
 struct v4l2_meta_format {
-    __u32 dataformat;
-    __u32 buffersize;
+    uint32_t dataformat;
+    uint32_t buffersize;
 } __attribute__ ((packed));
 
 struct v4l2_pix_format {
-    __u32 width;
-    __u32 height;
-    __u32 pixelformat;
-    __u32 field;        /* enum v4l2_field */
-    __u32 bytesperline;    /* for padding, zero if unused */
-    __u32 sizeimage;
-    __u32 colorspace;    /* enum v4l2_colorspace */
-    __u32 priv;        /* private data, depends on pixelformat */
-    __u32 flags;        /* format flags (V4L2_PIX_FMT_FLAG_*) */
+    uint32_t width;
+    uint32_t height;
+    uint32_t pixelformat;
+    uint32_t field;        /* enum v4l2_field */
+    uint32_t bytesperline;    /* for padding, zero if unused */
+    uint32_t sizeimage;
+    uint32_t colorspace;    /* enum v4l2_colorspace */
+    uint32_t priv;        /* private data, depends on pixelformat */
+    uint32_t flags;        /* format flags (V4L2_PIX_FMT_FLAG_*) */
     union {
         /* enum v4l2_ycbcr_encoding */
-        __u32 ycbcr_enc;
+        uint32_t ycbcr_enc;
         /* enum v4l2_hsv_encoding */
-        __u32 hsv_enc;
+        uint32_t hsv_enc;
     };
-    __u32 quantization;    /* enum v4l2_quantization */
-    __u32 xfer_func;    /* enum v4l2_xfer_func */
+    uint32_t quantization;    /* enum v4l2_quantization */
+    uint32_t xfer_func;    /* enum v4l2_xfer_func */
 };
 
 struct v4l2_plane_pix_format {
-    __u32 sizeimage;
-    __u32 bytesperline;
-    __u16 reserved[6];
+    uint32_t sizeimage;
+    uint32_t bytesperline;
+    uint16_t reserved[6];
 } __attribute__ ((packed));
 
 struct v4l2_pix_format_mplane {
-    __u32 width;
-    __u32 height;
-    __u32 pixelformat;
-    __u32 field;
-    __u32 colorspace;
+    uint32_t width;
+    uint32_t height;
+    uint32_t pixelformat;
+    uint32_t field;
+    uint32_t colorspace;
 
     struct v4l2_plane_pix_format plane_fmt[VIDEO_MAX_PLANES];
-    __u8 num_planes;
-    __u8 flags;
+    uint8_t num_planes;
+    uint8_t flags;
     union {
-        __u8 ycbcr_enc;
-        __u8 hsv_enc;
+        uint8_t ycbcr_enc;
+        uint8_t hsv_enc;
     };
-    __u8 quantization;
-    __u8 xfer_func;
-    __u8 reserved[7];
+    uint8_t quantization;
+    uint8_t xfer_func;
+    uint8_t reserved[7];
 } __attribute__ ((packed));
 
 struct v4l2_rect {
-    __s32 left;
-    __s32 top;
-    __u32 width;
-    __u32 height;
+    int32_t left;
+    int32_t top;
+    uint32_t width;
+    uint32_t height;
 };
 
 struct v4l2_clip {
@@ -183,40 +183,40 @@ struct v4l2_clip {
 
 struct v4l2_window {
     struct v4l2_rect w;
-    __u32 field;
-    __u32 chromakey;
+    uint32_t field;
+    uint32_t chromakey;
     struct v4l2_clip *clips;
-    __u32 clipcount;
+    uint32_t clipcount;
     void *bitmap;
-    __u8 global_alpha;
+    uint8_t global_alpha;
 };
 
 struct v4l2_vbi_format {
-    __u32 sampling_rate;
-    __u32 offset;
-    __u32 samples_per_line;
-    __u32 sample_format;
-    __s32 start[2];
-    __u32 count[2];
-    __u32 flags;
-    __u32 reserved[2];
+    uint32_t sampling_rate;
+    uint32_t offset;
+    uint32_t samples_per_line;
+    uint32_t sample_format;
+    int32_t start[2];
+    uint32_t count[2];
+    uint32_t flags;
+    uint32_t reserved[2];
 };
 
 struct v4l2_sliced_vbi_format {
-    __u16 service_set;
-    __u16 service_lines[2][24];
-    __u32 io_size;
-    __u32 reserved[2];
+    uint16_t service_set;
+    uint16_t service_lines[2][24];
+    uint32_t io_size;
+    uint32_t reserved[2];
 };
 
 struct v4l2_sdr_format {
-    __u32 pixelformat;
-    __u32 buffersize;
-    __u8 reserved[24];
+    uint32_t pixelformat;
+    uint32_t buffersize;
+    uint8_t reserved[24];
 } __attribute__ ((packed));
 
 struct v4l2_format {
-    __u32 type{};
+    uint32_t type{};
     union {
         struct v4l2_pix_format pix{};     /* V4L2_BUF_TYPE_VIDEO_CAPTURE */
         struct v4l2_pix_format_mplane pix_mp;  /* V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE */
@@ -225,7 +225,7 @@ struct v4l2_format {
         struct v4l2_sliced_vbi_format sliced;  /* V4L2_BUF_TYPE_SLICED_VBI_CAPTURE */
         struct v4l2_sdr_format sdr;     /* V4L2_BUF_TYPE_SDR_CAPTURE */
         struct v4l2_meta_format meta;    /* V4L2_BUF_TYPE_META_CAPTURE */
-        __u8 raw_data[200];                   /* user-defined */
+        uint8_t raw_data[200];                   /* user-defined */
     } fmt;
 };
 
@@ -237,61 +237,46 @@ enum v4l2_memory {
 };
 
 struct v4l2_requestbuffers {
-    __u32 count;
-    __u32 type;        /* enum v4l2_buf_type */
-    __u32 memory;        /* enum v4l2_memory */
-    __u32 capabilities;
-    __u32 reserved[1];
+    uint32_t count;
+    uint32_t type;        /* enum v4l2_buf_type */
+    uint32_t memory;        /* enum v4l2_memory */
+    uint32_t capabilities;
+    uint32_t reserved[1];
 };
 
 struct v4l2_timecode {
-    __u32 type;
-    __u32 flags;
-    __u8 frames;
-    __u8 seconds;
-    __u8 minutes;
-    __u8 hours;
-    __u8 userbits[4];
+    uint32_t type;
+    uint32_t flags;
+    uint8_t frames;
+    uint8_t seconds;
+    uint8_t minutes;
+    uint8_t hours;
+    uint8_t userbits[4];
 };
 
-/*#if __TIMESIZE == 64 && defined __LIBC
-# define __time64_t __time_t
-#elif __TIMESIZE != 64
-typedef __TIME64_T_TYPE __time64_t;
-#endif
-struct timeval {
-#ifdef __USE_TIME_BITS64
-    __time64_t tv_sec;		*//* Seconds.  *//*
-  __suseconds64_t tv_usec;	*//* Microseconds.  *//*
-#else
-    __time_t tv_sec;        *//* Seconds.  *//*
-    __suseconds_t tv_usec;    *//* Microseconds.  *//*
-#endif
-};*/
-
 struct v4l2_buffer {
-    __u32 index;
-    __u32 type;
-    __u32 bytesused;
-    __u32 flags;
-    __u32 field;
+    uint32_t index;
+    uint32_t type;
+    uint32_t bytesused;
+    uint32_t flags;
+    uint32_t field;
     struct timeval timestamp;
     struct v4l2_timecode timecode;
-    __u32 sequence;
+    uint32_t sequence;
 
     /* memory location */
-    __u32 memory;
+    uint32_t memory;
     union {
-        __u32 offset;
+        uint32_t offset;
         unsigned long userptr;
         struct v4l2_plane *planes;
-        __s32 fd;
+        int32_t fd;
     } m;
-    __u32 length;
-    __u32 reserved2;
+    uint32_t length;
+    uint32_t reserved2;
     union {
-        __s32 request_fd;
-        __u32 reserved;
+        int32_t request_fd;
+        uint32_t reserved;
     };
 };
 

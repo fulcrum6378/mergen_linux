@@ -5,6 +5,22 @@ Started at 16 October 2023, 07:11 as a subproject of [**Mergen**](https://github
 Since FreeBSD has limited utilities for webcam, microphone and touch, compared to Linux,
 I decided to first mount Mergen on Linux (Ubuntu) and then for (Free)BSD.
 
-This will be a mere command-line program. As soon as the program starts,
+But then I realised that FreeBSD uses the same webcam drivers of Linux
+ported as [**webcamd**](https://github.com/hselasky/webcamd), so it can easily be modified for use in FreeBSD.
+By copying some of [**Video4Linux2**](https://en.wikipedia.org/wiki/Video4Linux) headers
+as [*videodev2.hpp*](vis/videodev2.hpp), I finally made it run on FreeBSD.
+
+### Compilation
+
+[*Makefile*](Makefile) automatically adapts to the operating system you're using.
+Open terminal in the project folder and call:
+
+~$ `make`
+
+### Execution
+
+This is a mere command-line program. As soon as the program starts,
 recording from first detected webcam, microphone and touchpad will begin.
 The main thread listens if you press the Enter button; then it will stop recording.
+
+~$ `build/MergenLinux`

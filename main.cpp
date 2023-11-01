@@ -8,8 +8,6 @@
 #include "vis/camera.hpp"
 
 int main() {
-    static std::atomic_bool on = true;
-
     // construct high-level components
 
     // construct low-level components (sensors/controls)
