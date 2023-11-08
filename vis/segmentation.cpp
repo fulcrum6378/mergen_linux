@@ -411,11 +411,6 @@ void Segmentation::Process() {
           delta1 + delta2 + delta3 + delta4 + delta5 + delta6);
     print("----------------------------------");
 
-#if VISUAL_STM
-    // if recording is over, save state of VisualSTM
-    if (!on) stm->SaveState();
-#endif
-
     // clear data and unlock the frame
     memset(status, 0, sizeof(status));
     memset(b_status, 0, sizeof(b_status));

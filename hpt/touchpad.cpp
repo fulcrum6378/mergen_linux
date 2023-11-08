@@ -1,5 +1,5 @@
 #include "touchpad.hpp"
 
-Touchpad::Touchpad() = default;
+Touchpad::Touchpad(int */*exit*/) {}
 
 Touchpad::~Touchpad() = default;

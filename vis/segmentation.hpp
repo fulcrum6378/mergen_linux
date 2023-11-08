@@ -47,6 +47,9 @@ public:
 
 
     uint32_t bufLength{};
+#if VISUAL_STM
+    VisualSTM *stm;
+#endif
 
 private:
     static bool CompareColours(uint8_t (*a)[3], uint8_t (*b)[3]);
@@ -72,7 +75,7 @@ private:
 #if !RG2
     std::vector<Segment> segments, prev_segments;
     // simulates recursive programming (vector is always better for it than list!)
-    std::vector<std::array<uint16_t, 3>> stack;
+    std::vector<std::array<uint16_t, 3u>> stack;
 #else
     std::unordered_map<uint32_t, Segment> segments, prev_segments;
 #endif
@@ -87,10 +90,6 @@ private:
     std::unordered_set<uint16_t> a_y, a_u, a_v, a_r;
     // a final map for tracking visual objects and explaining their differences
     std::unordered_map<uint16_t, std::vector<int32_t>> diff;
-
-#if VISUAL_STM
-    VisualSTM *stm;
-#endif
 };
 
 #endif //VIS_SEGMENTATION_H

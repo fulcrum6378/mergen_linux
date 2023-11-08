@@ -3,12 +3,9 @@
 
 class Microphone {
 public:
-    Microphone();
+    explicit Microphone(int *exit);
 
     ~Microphone();
-
-
-    int exit = 0;
 };
 
 #endif //AUD_MICROPHONE_H

@@ -3,12 +3,9 @@
 
 class Touchpad {
 public:
-    Touchpad();
+    explicit Touchpad(int *exit);
 
     ~Touchpad();
-
-
-    int exit = 0;
 };
 
 #endif //HPT_TOUCHPAD_H

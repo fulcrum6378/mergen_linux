@@ -17,12 +17,11 @@
 
 class Camera {
 public:
-    Camera();
+    explicit Camera(int *exit);
+
+    void Stop();
 
     ~Camera();
-
-
-    int exit = 0;
 
 private:
     void Record();
@@ -43,7 +42,7 @@ private:
     v4l2_buffer buffer_info{};
     unsigned char *buf;
 
-    std::thread record;
+    std::thread *record;
     Segmentation *segmentation;
 
 };

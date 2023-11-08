@@ -9,17 +9,17 @@
 
 using namespace std;
 
-Camera::Camera() {
+Camera::Camera(int *exit) {
     dev = open("/dev/video0", O_RDWR);
     if (dev < 0) {
         perror("Failed to open device");
-        exit = 1;
+        *exit = 1;
         return;
     }
     v4l2_capability capability{};
     if (ioctl(dev, VIDIOC_QUERYCAP, &capability) < 0) {
         perror("This device cannot capture frames");
-        exit = 2;
+        *exit = 2;
         return;
     }
 
@@ -57,8 +57,8 @@ Camera::Camera() {
 
     // prepare for analysis
     segmentation = new Segmentation(&buf);
-    record = std::thread(&Camera::Record, this);
-    record.detach();
+    record = new std::thread(&Camera::Record, this);
+    record->detach();
 }
 
 void Camera::Record() {
@@ -71,9 +71,22 @@ void Camera::Record() {
     }
 }
 
-Camera::~Camera() {
-    if (record.joinable()) record.join();
-    delete segmentation;
+/** Never merge these into the destructor. */
+void Camera::Stop() {
+    //if (record->joinable()) {
+        print("KIRRRRRRR");
+        record->join();
+        print("FUUUUUUCK");
+    //}
+    delete record;
+#if VISUAL_STM
+    // if recording is over, save state of VisualSTM
+    segmentation->stm->SaveState();
+#endif
     ioctl(dev, VIDIOC_STREAMOFF, &buffer_info.bytesused);
+}
+
+Camera::~Camera() {
+    delete segmentation;
     close(dev);
 }

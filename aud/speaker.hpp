@@ -3,12 +3,9 @@
 
 class Speaker {
 public:
-    Speaker();
+    explicit Speaker(int *exit);
 
     ~Speaker();
-
-
-    int exit = 0;
 };
 
 

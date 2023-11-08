@@ -1,5 +1,5 @@
 #include "speaker.hpp"
 
-Speaker::Speaker() = default;
+Speaker::Speaker(int */*exit*/) {}
 
 Speaker::~Speaker() = default;

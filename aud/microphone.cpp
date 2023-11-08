@@ -1,5 +1,5 @@
 #include "microphone.hpp"
 
-Microphone::Microphone() = default;
+Microphone::Microphone(int */*exit*/) {}
 
 Microphone::~Microphone() = default;

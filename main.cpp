@@ -1,6 +1,4 @@
-#include <chrono>
 #include <iostream>
-#include <thread>
 
 #include "global.hpp"
 #include "aud/microphone.hpp"
@@ -10,20 +8,23 @@
 
 int main() {
     // construct low-level components (sensors/controls)
-    auto *aud_in = new Microphone();
-    if (aud_in->exit != 0) return aud_in->exit;
-    auto *aud_out = new Speaker();
-    if (aud_out->exit != 0) return aud_out->exit;
-    auto *hpt = new Touchpad();
-    if (hpt->exit != 0) return hpt->exit;
-    auto *vis = new Camera();
-    if (vis->exit != 0) return vis->exit;
+    int exit = 0;
+    auto *aud_in = new Microphone(&exit);
+    if (exit != 0) return 10 + exit;
+    auto *aud_out = new Speaker(&exit);
+    if (exit != 0) return 20 + exit;
+    auto *hpt = new Touchpad(&exit);
+    if (exit != 0) return 30 + exit;
+    auto vis = new Camera(&exit);
+    if (exit != 0) return 40 + exit;
 
     // listen for a stop signal
     print("");
     std::cin.ignore();
     on = false;
-    std::this_thread::sleep_for(std::chrono::milliseconds(2000)); // unavoidable ensurance
+
+    // let the components save their states
+    vis->Stop();
 
     // destruct low-level components
     delete aud_in;
