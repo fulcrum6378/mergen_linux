@@ -4,11 +4,12 @@
 #include <sys/mman.h> // PROT_READ, PROT_WRITE, MAP_SHARED
 #include <unistd.h>
 
+#include "../global.hpp"
 #include "camera.hpp"
 
 using namespace std;
 
-Camera::Camera(atomic_bool *on) : on_(on) {
+Camera::Camera() {
     dev = open("/dev/video0", O_RDWR);
     if (dev < 0) {
         perror("Failed to open device");
@@ -24,8 +25,8 @@ Camera::Camera(atomic_bool *on) : on_(on) {
 
     // v4l2_format
     imageFormat.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    imageFormat.fmt.pix.width = 640;
-    imageFormat.fmt.pix.height = 480;
+    imageFormat.fmt.pix.width = 640u;
+    imageFormat.fmt.pix.height = 480u;
     imageFormat.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV; // V4L2_PIX_FMT_MJPEG -> V4L2_PIX_FMT_YUYV
     imageFormat.fmt.pix.field = V4L2_FIELD_NONE;
     ioctl(dev, VIDIOC_S_FMT, &imageFormat);
@@ -55,13 +56,13 @@ Camera::Camera(atomic_bool *on) : on_(on) {
     ioctl(dev, VIDIOC_STREAMON, &buffer_info.type);
 
     // prepare for analysis
-    segmentation = new Segmentation(on_, &buf);
+    segmentation = new Segmentation(&buf);
     record = std::thread(&Camera::Record, this);
     record.detach();
 }
 
 void Camera::Record() {
-    while (*on_) {
+    while (on) {
         ioctl(dev, VIDIOC_QBUF, &buffer_info);
         ioctl(dev, VIDIOC_DQBUF, &buffer_info);
 

@@ -72,17 +72,17 @@ static const std::string dirBitmap = "vis/bmp/";
                     v = static_cast<double>(arr[yy][xx][2]),
                     r, g, b;
 
-            r = y + 1.4065 * (v - 128);                 //r0
-            g = y - 0.3455 * (u - 128) - 0.7169 * (v - 128); //g0
-            b = y + 1.1790 * (u - 128);                 //b0
+            r = y + 1.4065 * (v - 128.0);                        //r0
+            g = y - 0.3455 * (u - 128.0) - 0.7169 * (v - 128.0); //g0
+            b = y + 1.1790 * (u - 128.0);                        //b0
 
-            if (r < 0) r = 0; else if (r > 255) r = 255;
-            if (g < 0) g = 0; else if (g > 255) g = 255;
-            if (b < 0) b = 0; else if (b > 255) b = 255;
+            if (r < 0.0) r = 0.0; else if (r > 255.0) r = 255.0;
+            if (g < 0.0) g = 0.0; else if (g > 255.0) g = 255.0;
+            if (b < 0.0) b = 0.0; else if (b > 255.0) b = 255.0;
 
-            bmp.put((char) b);
-            bmp.put((char) g);
-            bmp.put((char) r);
+            bmp.put(static_cast<char>(b));
+            bmp.put(static_cast<char>(g));
+            bmp.put(static_cast<char>(r));
         }
         for (int i = 0; i < (w % 4); i++) bmp.put(0); // both 'ide diagnostic' items are only for this line!
     }

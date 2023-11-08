@@ -12,8 +12,7 @@
 
 using namespace std;
 
-Segmentation::Segmentation(std::atomic_bool *on, unsigned char **buf) :
-        on_(on), buf_(buf), stm(new VisualSTM()) {
+Segmentation::Segmentation(unsigned char **buf) : buf_(buf), stm(new VisualSTM()) {
 
 #if SAVE_BITMAPS >= 1 // prepare to save bitmaps if wanted
     struct stat sb{};
@@ -29,9 +28,9 @@ void Segmentation::Process() {
 
     // 1. loading; bring separate YUV data into the multidimensional array of pixels `arr`
     auto t0 = chrono::system_clock::now();
-    int off = 0;
+    int off = 0, ww = static_cast<int>(W);
     for (int j = 0; j < bufLength; j += 4) {
-        int yy = (off / 3) / W, xx = (off / 3) % W;
+        int yy = (off / 3) / ww, xx = (off / 3) % ww;
         arr[yy][xx][0] = (*buf_)[j + 0]; // first pixel
         arr[yy][xx][1] = (*buf_)[j + 1];
         arr[yy][xx][2] = (*buf_)[j + 3];
@@ -48,9 +47,9 @@ void Segmentation::Process() {
 
     // 2. segmentation
     t0 = chrono::system_clock::now();
-    uint32_t nextSeg = 1;
+    uint32_t nextSeg = 1u;
 #if !RG2
-    uint16_t thisY = 0, thisX = 0;
+    uint16_t thisY = 0u, thisX = 0u;
     int64_t last; // must be signed
     bool foundSthToAnalyse = true;
 #pragma clang diagnostic push
@@ -59,8 +58,8 @@ void Segmentation::Process() {
 #pragma clang diagnostic pop
         foundSthToAnalyse = false;
         for (uint16_t y = thisY; y < H; y++) {
-            for (uint16_t x = (y == thisY) ? thisX : 0; x < W; x++)
-                if (status[y][x] == 0) {
+            for (uint16_t x = (y == thisY) ? thisX : 0u; x < W; x++)
+                if (status[y][x] == 0u) {
                     foundSthToAnalyse = true;
                     thisY = y;
                     thisX = x;
@@ -78,7 +77,7 @@ void Segmentation::Process() {
             y = stack[last][0], x = stack[last][1], dr = stack[last][2];
             if (dr == 0) {
                 seg.p.push_back((y << 16) | x);
-#if MIN_SEG_SIZE == 1 // add colours in order to compute their mean value later
+#if MIN_SEG_SIZE == 1u // add colours in order to compute their mean value later
                 seg.ys += arr[y][x][0] * arr[y][x][0];
                 seg.us += arr[y][x][1] * arr[y][x][1];
                 seg.vs += arr[y][x][2] * arr[y][x][2];
@@ -86,29 +85,29 @@ void Segmentation::Process() {
                 status[y][x] = seg.id;
                 // left
                 stack[last][2]++;
-                if (x > 0 && status[y][x - 1] == 0 && CompareColours(&arr[y][x], &arr[y][x - 1])) {
-                    stack.push_back({y, static_cast<uint16_t>(x - 1), 0});
+                if (x > 0 && status[y][x - 1] == 0 && CompareColours(&arr[y][x], &arr[y][x - 1u])) {
+                    stack.push_back({y, static_cast<uint16_t>(x - 1u), 0u});
                     continue;
                 }
             }
             if (dr <= 1) { // top
                 stack[last][2]++;
-                if (y > 0 && status[y - 1][x] == 0 && CompareColours(&arr[y][x], &arr[y - 1][x])) {
-                    stack.push_back({static_cast<uint16_t>(y - 1), x, 0});
+                if (y > 0 && status[y - 1][x] == 0 && CompareColours(&arr[y][x], &arr[y - 1u][x])) {
+                    stack.push_back({static_cast<uint16_t>(y - 1u), x, 0u});
                     continue;
                 }
             }
             if (dr <= 2) { // right
                 stack[last][2]++;
-                if (x < (W - 1) && status[y][x + 1] == 0 && CompareColours(&arr[y][x], &arr[y][x + 1])) {
-                    stack.push_back({y, static_cast<uint16_t>(x + 1), 0});
+                if (x < (W - 1) && status[y][x + 1] == 0 && CompareColours(&arr[y][x], &arr[y][x + 1u])) {
+                    stack.push_back({y, static_cast<uint16_t>(x + 1u), 0u});
                     continue;
                 }
             }
             if (dr <= 3) { // bottom
                 stack[last][2]++;
-                if (y < (H - 1) && status[y + 1][x] == 0 && CompareColours(&arr[y][x], &arr[y + 1][x])) {
-                    stack.push_back({static_cast<uint16_t>(y + 1), x, 0});
+                if (y < (H - 1) && status[y + 1][x] == 0 && CompareColours(&arr[y][x], &arr[y + 1u][x])) {
+                    stack.push_back({static_cast<uint16_t>(y + 1u), x, 0u});
                     continue;
                 }
             }
@@ -117,61 +116,61 @@ void Segmentation::Process() {
         segments.push_back(seg);
     }
 #else
-    uint32_t nSeg, segmentOfAnyNeighbour = 0, chosenOne, removal = 1;
+    uint32_t nSeg, segmentOfAnyNeighbour = 0u, chosenOne, removal = 1u;
     uint16_t ry, rx, by, bx, ly, lx, ty, tx;
     bool anyQualified;
     set<uint32_t> allowedRegions;
-    uint8_t nAllowedRegions = 0;
-    for (uint16_t y = 0; y < h; y++) {
+    uint8_t nAllowedRegions = 0u;
+    for (uint16_t y = 0u; y < h; y++) {
         for (uint16_t x = 0; x < w; x++) {
             if (status[y][x] != 0) continue;
 
             // analyse neighbours
             nSeg = status[ry][rx];
-            if (x < (w - 1)) { // right
+            if (x < (w - 1u)) { // right
                 ry = y;
-                rx = x + 1;
+                rx = x + 1u;
                 if (CompareColours(arr[y][x], arr[ry][rx])) {
                     anyQualified = true;
-                    if (nSeg != 0) allowedRegions.insert(nSeg);
+                    if (nSeg != 0u) allowedRegions.insert(nSeg);
                 }
-                if (nSeg != 0 && segmentOfAnyNeighbour != 0) segmentOfAnyNeighbour = nSeg;
+                if (nSeg != 0u && segmentOfAnyNeighbour != 0u) segmentOfAnyNeighbour = nSeg;
             }
-            nSeg = status[by][bx] != 0;
-            if (y < (h - 1)) { // bottom
-                by = y + 1;
+            nSeg = status[by][bx] != 0u;
+            if (y < (h - 1u)) { // bottom
+                by = y + 1u;
                 bx = x;
                 if (CompareColours(arr[y][x], arr[by][bx])) {
                     anyQualified = true;
-                    if (nSeg != 0) allowedRegions.insert(nSeg);
+                    if (nSeg != 0u) allowedRegions.insert(nSeg);
                 }
-                if (nSeg != 0 && segmentOfAnyNeighbour != 0) segmentOfAnyNeighbour = nSeg;
+                if (nSeg != 0u && segmentOfAnyNeighbour != 0u) segmentOfAnyNeighbour = nSeg;
             }
-            nSeg = status[ly][lx] != 0;
-            if (x > 0) { // left
+            nSeg = status[ly][lx] != 0u;
+            if (x > 0u) { // left
                 ly = y;
-                lx = x - 1;
+                lx = x - 1u;
                 if (CompareColours(arr[y][x], arr[ly][lx])) {
                     anyQualified = true;
-                    if (nSeg != 0) allowedRegions.insert(nSeg);
+                    if (nSeg != 0u) allowedRegions.insert(nSeg);
                 }
-                if (nSeg != 0 && segmentOfAnyNeighbour != 0) segmentOfAnyNeighbour = nSeg;
+                if (nSeg != 0u && segmentOfAnyNeighbour != 0u) segmentOfAnyNeighbour = nSeg;
             }
-            nSeg = status[ty][tx] != 0;
-            if (y > 0) { // top
-                ty = y - 1;
+            nSeg = status[ty][tx] != 0u;
+            if (y > 0u) { // top
+                ty = y - 1u;
                 tx = x;
                 if (CompareColours(arr[y][x], arr[ty][tx])) {
                     anyQualified = true;
-                    if (nSeg != 0) allowedRegions.insert(nSeg);
+                    if (nSeg != 0u) allowedRegions.insert(nSeg);
                 }
-                if (nSeg != 0 && segmentOfAnyNeighbour != 0) segmentOfAnyNeighbour = nSeg;
+                if (nSeg != 0u && segmentOfAnyNeighbour != 0u) segmentOfAnyNeighbour = nSeg;
             }
 
             // determine the segment of this pixel
             if (anyQualified) {
                 nAllowedRegions = allowedRegions.size();
-                if (nAllowedRegions == 0) {
+                if (nAllowedRegions == 0u) {
                     segments[nextSeg] = Segment{nextSeg};
                     status[y][x] = nextSeg;
                 } else { // repair the pixels
@@ -187,7 +186,7 @@ void Segmentation::Process() {
                     status[y][x] = chosenOne;
                 }
             } else {
-                if (segmentOfAnyNeighbour != 0)
+                if (segmentOfAnyNeighbour != 0u)
                     status[y][x] = segmentOfAnyNeighbour;
                 else {
                     segments[nextSeg] = Segment{nextSeg};
@@ -198,7 +197,7 @@ void Segmentation::Process() {
 
             anyQualified = false;
             allowedRegions.clear();
-            segmentOfAnyNeighbour = 0;
+            segmentOfAnyNeighbour = 0u;
             nextSeg++;
         }
     }
@@ -208,14 +207,14 @@ void Segmentation::Process() {
 
     // 3. dissolution
     t0 = chrono::system_clock::now();
-#if MIN_SEG_SIZE != 1 && !RG2
-    uint32_t absorber_i, size_bef = segments.size(), removal = 1;
+#if MIN_SEG_SIZE != 1u && !RG2
+    uint32_t absorber_i, size_bef = segments.size(), removal = 1u;
     Segment *absorber;
     for (int32_t seg = static_cast<int32_t>(size_bef) - 1; seg > -1; seg--)
         if (segments[seg].p.size() < MIN_SEG_SIZE) {
             absorber_i = FindPixelOfASegmentToDissolveIn(&segments[seg]);
             if (absorber_i == 0xFFFFFFFF) continue;
-            absorber = &segments[status[absorber_i >> 16][absorber_i & 0xFFFF] - 1];
+            absorber = &segments[status[absorber_i >> 16][absorber_i & 0xFFFF] - 1u];
             for (uint32_t &p: segments[seg].p) {
                 absorber->p.push_back(p); // merge()
                 status[p >> 16][p & 0xFFFF] = absorber->id;
@@ -223,7 +222,7 @@ void Segmentation::Process() {
             swap(segments[seg], segments[size_bef - removal]);
             removal++;
         }
-    segments.resize(size_bef - (removal - 1));
+    segments.resize(size_bef - (removal - 1u));
     print("Total segments: %zu / %u", segments.size(), size_bef);
 #else
     print("Total segments: %zu", segments.size());
@@ -234,8 +233,8 @@ void Segmentation::Process() {
     // 4. average colours + detect boundaries
     t0 = chrono::system_clock::now();
     uint32_t l_;
-#if MIN_SEG_SIZE != 1
-    array<uint8_t, 3> *col;
+#if MIN_SEG_SIZE != 1u
+    array<uint8_t, 3u> *col;
     uint64_t ys, us, vs;
 #endif
     bool isFirst;
@@ -248,10 +247,10 @@ void Segmentation::Process() {
 #endif
         // average colours of each segment
         l_ = seg.p.size();
-#if MIN_SEG_SIZE != 1
-        ys = 0, us = 0, vs = 0;
+#if MIN_SEG_SIZE != 1u
+        ys = 0u, us = 0u, vs = 0u;
         for (uint32_t p: seg.p) {
-            col = reinterpret_cast<array<uint8_t, 3> *>(&arr[p >> 16][p & 0xFFFF]);
+            col = reinterpret_cast<array<uint8_t, 3u> *>(&arr[p >> 16][p & 0xFFFF]);
             ys += (*col)[0] * (*col)[0]; // pow(, 2)
             us += (*col)[1] * (*col)[1];
             vs += (*col)[2] * (*col)[2];
@@ -285,8 +284,8 @@ void Segmentation::Process() {
                 if (x > seg.max_x) seg.max_x = x;
             }
         }
-        seg.w = (seg.max_x + 1) - seg.min_x;
-        seg.h = (seg.max_y + 1) - seg.min_y;
+        seg.w = (seg.max_x + 1u) - seg.min_x;
+        seg.h = (seg.max_y + 1u) - seg.min_y;
 
         // index the Segments by their IDs
         s_index[seg.id] = &seg;
@@ -296,21 +295,21 @@ void Segmentation::Process() {
 
     // 5. trace border pixels
     t0 = chrono::system_clock::now();
-    for (y = 0; y < H; y++) {
-        if (y == 0 || y == H - 1)
+    for (y = 0u; y < H; y++) {
+        if (y == 0u || y == H - 1u)
             for (x = 0; x < W; x++)
                 SetAsBorder(y, x);
         else
-            for (x = 0; x < W; x++) {
-                if (x == 0 or x == W - 1) {
+            for (x = 0u; x < W; x++) {
+                if (x == 0u or x == W - 1u) {
                     SetAsBorder(y, x);
                     continue;
                 }
                 if (b_status[y][x] == 1) continue;
-                CheckIfBorder(y, x, y, x + 1); //     eastern
-                CheckIfBorder(y, x, y + 1, x + 1); // south-eastern
-                CheckIfBorder(y, x, y + 1, x); //     southern
-                CheckIfBorder(y, x, y + 1, x - 1); // south-western
+                CheckIfBorder(y, x, y, x + 1u); //     eastern
+                CheckIfBorder(y, x, y + 1u, x + 1u); // south-eastern
+                CheckIfBorder(y, x, y + 1u, x); //     southern
+                CheckIfBorder(y, x, y + 1u, x - 1u); // south-western
             }
     }
 #if SAVE_BITMAPS == 2
@@ -327,7 +326,7 @@ void Segmentation::Process() {
     float nearest_dist, dist;
     int32_t best;
     l_ = segments.size();
-    for (uint16_t sid = 0; sid < MAX_SEGS; sid++) {// Segment &seg: segments
+    for (uint16_t sid = 0u; sid < MAX_SEGS; sid++) {// Segment &seg: segments
         if (sid >= l_) break;
         Segment *seg = &segments[sid];
         seg->ComputeRatioAndCentre();
@@ -401,8 +400,8 @@ void Segmentation::Process() {
     ri = std::move(_ri);
 #if VISUAL_STM
     stm->OnFrameFinished();
-#endif //VISUAL_STM
-#endif //RG2
+#endif
+#endif //!RG2
     auto delta6 = chrono::duration_cast<chrono::milliseconds>(
             chrono::system_clock::now() - t0).count();
 
@@ -412,8 +411,10 @@ void Segmentation::Process() {
           delta1 + delta2 + delta3 + delta4 + delta5 + delta6);
     print("----------------------------------");
 
+#if VISUAL_STM
     // if recording is over, save state of VisualSTM
-    if (!*on_) stm->SaveState();
+    if (!on) stm->SaveState();
+#endif
 
     // clear data and unlock the frame
     memset(status, 0, sizeof(status));
@@ -432,16 +433,16 @@ bool Segmentation::CompareColours(uint8_t (*a)[3], uint8_t (*b)[3]) {
 uint32_t Segmentation::FindPixelOfASegmentToDissolveIn(Segment *seg) {
     uint32_t cor = seg->p.front();
     uint16_t a = cor >> 16, b = cor & 0xFFFF;
-    if (a > 0)
-        return ((a - 1) << 16) | b;
-    if (b > 0)
-        return (a << 16) | (b - 1);
+    if (a > 0u)
+        return ((a - 1u) << 16) | b;
+    if (b > 0u)
+        return (a << 16) | (b - 1u);
     cor = seg->p.back();
     a = cor >> 16, b = cor & 0xFFFF;
-    if (a < H - 1)
-        return ((a + 1) << 16) | b;
-    if (b < W - 1)
-        return (a << 16) | (b + 1);
+    if (a < H - 1u)
+        return ((a + 1u) << 16) | b;
+    if (b < W - 1u)
+        return (a << 16) | (b + 1u);
     return 0xFFFFFFFF;
 }
 
@@ -453,16 +454,16 @@ void Segmentation::CheckIfBorder(uint16_t y1, uint16_t x1, uint16_t y2, uint16_t
 }
 
 void Segmentation::SetAsBorder(uint16_t y, uint16_t x) {
-    b_status[y][x] |= 1;
+    b_status[y][x] |= 1u;
 #if SAVE_BITMAPS == 2
-    arr[y][x][0] = 76, arr[y][x][1] = 84, arr[y][x][2] = 255;
+    arr[y][x][0] = 76u, arr[y][x][1] = 84u, arr[y][x][2] = 255u;
 #endif
     Segment *seg = s_index[status[y][x]];
     seg->border.insert(
-            (static_cast<SHAPE_POINT_T>((shape_point_max / static_cast<float>(seg->h)) *
+            (static_cast<SHAPE_POINT_T>((SHAPE_POINT_MAX / static_cast<float>(seg->h)) *
                                         static_cast<float>(y - seg->min_y)) // fractional Y
-                    << shape_point_each_bits) |
-            static_cast<SHAPE_POINT_T>((shape_point_max / static_cast<float>(seg->w)) *
+                    << SHAPE_POINT_EACH_BITS) |
+            static_cast<SHAPE_POINT_T>((SHAPE_POINT_MAX / static_cast<float>(seg->w)) *
                                        static_cast<float>(x - seg->min_x))  // fractional X
     ); // they get reversed in while writing to a file
 }

@@ -16,7 +16,18 @@
 #endif
 
 class Camera {
+public:
+    Camera();
+
+    ~Camera();
+
+
+    int exit = 0;
+
 private:
+    void Record();
+
+
     int dev;
     /**
      * Install V4L utilities for gathering information about your system.
@@ -32,18 +43,9 @@ private:
     v4l2_buffer buffer_info{};
     unsigned char *buf;
 
-    std::atomic_bool *on_;
     std::thread record;
     Segmentation *segmentation;
 
-    void Record();
-
-public:
-    int exit = 0;
-
-    explicit Camera(std::atomic_bool *on);
-
-    ~Camera();
 };
 
 #endif //VIS_CAMERA_H

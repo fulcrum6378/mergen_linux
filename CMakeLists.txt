@@ -9,6 +9,8 @@ add_executable(MergenLinux
 
         aud/microphone.cpp
         aud/microphone.hpp
+        aud/speaker.cpp
+        aud/speaker.hpp
 
         hpt/touchpad.cpp
         hpt/touchpad.hpp

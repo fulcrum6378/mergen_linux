@@ -18,7 +18,7 @@ inline void print(const std::string &s) {
 
 template<typename ... Args>
 inline void print(const std::string &s, Args ... args) {
-    char buf[s.length() + 20];
+    char buf[s.length() + 20u];
     std::snprintf(buf, sizeof(buf), s.c_str(), args...);
     if (!s.empty()) std::cout << "\r" << buf << std::endl;
     if (on) footerMsg();

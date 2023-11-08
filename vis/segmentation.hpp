@@ -2,7 +2,6 @@
 #define VIS_SEGMENTATION_H
 
 #include <array>
-#include <atomic>
 #include <map>
 #include <unordered_map>
 #include <unordered_set>
@@ -11,15 +10,15 @@
 #include "visual_stm.hpp"
 
 // height of an image frame
-#define H 480
+#define H 480u
 // width of an image frame
-#define W 640
+#define W 640u
 // 0=>no, 1=>yes, 2=>yes with border highlights
 #define SAVE_BITMAPS 2
 // enable method "Region Growing 2" in favour of the 4th
 #define RG2 false
 // maximum allowed segments to be analysed extensively
-#define MAX_SEGS 20
+#define MAX_SEGS 20u
 // radii for searching through Volatile Indices
 #define Y_RADIUS 15
 #define U_RADIUS 10
@@ -39,10 +38,30 @@
  * Tracking (object tracking)</a>
  */
 class Segmentation {
-private:
-    std::atomic_bool *on_;
-    unsigned char **buf_;
+public:
+    explicit Segmentation(unsigned char **buf);
 
+    void Process();
+
+    ~Segmentation();
+
+
+    uint32_t bufLength{};
+
+private:
+    static bool CompareColours(uint8_t (*a)[3], uint8_t (*b)[3]);
+
+    static uint32_t FindPixelOfASegmentToDissolveIn(Segment *seg);
+
+    // Checks if this pixel is in border.
+    void CheckIfBorder(uint16_t y1, uint16_t x1, uint16_t y2, uint16_t x2);
+
+    // Recognises this pixel as border.
+    void SetAsBorder(uint16_t y, uint16_t x);
+
+
+    // buffer of raw image frames in YUYV format
+    unsigned char **buf_;
     // multidimensional array of pixels
     uint8_t arr[H][W][3]{};
     // maps pixels to their Segment IDs
@@ -72,25 +91,6 @@ private:
 #if VISUAL_STM
     VisualSTM *stm;
 #endif
-
-    static bool CompareColours(uint8_t (*a)[3], uint8_t (*b)[3]);
-
-    static uint32_t FindPixelOfASegmentToDissolveIn(Segment *seg);
-
-    // Checks if this pixel is in border.
-    void CheckIfBorder(uint16_t y1, uint16_t x1, uint16_t y2, uint16_t x2);
-
-    // Recognises this pixel as border.
-    void SetAsBorder(uint16_t y, uint16_t x);
-
-public:
-    uint32_t bufLength{};
-
-    explicit Segmentation(std::atomic_bool *on, unsigned char **buf);
-
-    void Process();
-
-    ~Segmentation();
 };
 
 #endif //VIS_SEGMENTATION_H

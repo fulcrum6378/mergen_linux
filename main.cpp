@@ -4,18 +4,19 @@
 
 #include "global.hpp"
 #include "aud/microphone.hpp"
+#include "aud/speaker.hpp"
 #include "hpt/touchpad.hpp"
 #include "vis/camera.hpp"
 
 int main() {
-    // construct high-level components
-
     // construct low-level components (sensors/controls)
-    auto *aud_in = new Microphone(&on);
+    auto *aud_in = new Microphone();
     if (aud_in->exit != 0) return aud_in->exit;
-    auto *hpt = new Touchpad(&on);
+    auto *aud_out = new Speaker();
+    if (aud_out->exit != 0) return aud_out->exit;
+    auto *hpt = new Touchpad();
     if (hpt->exit != 0) return hpt->exit;
-    auto *vis = new Camera(&on);
+    auto *vis = new Camera();
     if (vis->exit != 0) return vis->exit;
 
     // listen for a stop signal
@@ -26,10 +27,9 @@ int main() {
 
     // destruct low-level components
     delete aud_in;
+    delete aud_out;
     delete hpt;
     delete vis;
-
-    // destruct higher-level components
 
     return 0;
 }

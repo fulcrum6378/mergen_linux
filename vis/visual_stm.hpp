@@ -8,9 +8,9 @@
 #include "segment.hpp"
 
 // maximum frames allowed to be present in memory at a time
-#define MAX_FRAMES_STORED 3
+#define MAX_FRAMES_STORED 3u
 // forget N frames whenever hit the maximum
-#define FORGET_N_FRAMES 1
+#define FORGET_N_FRAMES 1u
 
 /**
  * Visual Short-Term Memory
@@ -22,23 +22,23 @@
  * Sequence Files 2</a>
  */
 class VisualSTM {
-private:
-    const std::string dirOut = "vis/stm/";
-    std::string dirShapes = "shapes", dirY = "y", dirU = "u", dirV = "v", dirR = "r",
-            framesFile = "frames", numbersFile = "numbers";
-    // ID of earliest frame which is STILL available in memory
-    uint64_t firstFrameId = 0;
-    // shape ID incrementer | ID of first shape in THIS FRAME
-    uint16_t nextShapeId = 0, firstShapeId = 0;
-    // total number of frames available in memory
-    uint16_t framesStored = 0;
-    // frame index (8-bit)
-    std::map<uint64_t, std::pair<uint16_t, uint16_t>> fi;
-    // 8-bit volatile indices
-    std::map<uint8_t, std::unordered_set<uint16_t>> yi, ui, vi;
-    // 16-bit volatile indices
-    std::map<uint16_t, std::unordered_set<uint16_t>> ri;
+public:
+    VisualSTM();
 
+    /** Inserts a new shape into memory. */
+    void Insert(Segment *seg);
+
+    /** Anything that needs to be done at the end. */
+    void OnFrameFinished();
+
+    /** Saves current state { nextFrameId, firstFrameId, nextShapeId }
+     * Don't save paths as variables in the constructor! */
+    void SaveState();
+
+
+    // frame ID incrementer
+    uint64_t nextFrameId = 0u;
+private:
     /** Forgets N of oldest frames. */
     void Forget();
 
@@ -50,21 +50,22 @@ private:
     template<class INT>
     void SaveIndices(std::map<INT, std::unordered_set<uint16_t>> *indexes, std::string *dir);
 
-public:
-    // frame ID incrementer
-    uint64_t nextFrameId = 0;
 
-    VisualSTM();
-
-    /** Inserts a new shape into memory. */
-    [[maybe_unused]] void Insert(Segment *seg);
-
-    /** Anything that needs to be done at the end. */
-    [[maybe_unused]] void OnFrameFinished();
-
-    /** Saves current state { nextFrameId, firstFrameId, nextShapeId }
-     * Don't save paths as variables in the constructor! */
-    [[maybe_unused]] void SaveState();
+    const std::string dirOut = "vis/stm/";
+    std::string dirShapes = "shapes", dirY = "y", dirU = "u", dirV = "v", dirR = "r",
+            framesFile = "frames", numbersFile = "numbers";
+    // ID of earliest frame which is STILL available in memory
+    uint64_t firstFrameId = 0u;
+    // shape ID incrementer | ID of first shape in THIS FRAME
+    uint16_t nextShapeId = 0u, firstShapeId = 0u;
+    // total number of frames available in memory
+    uint16_t framesStored = 0u;
+    // frame index (8-bit)
+    std::map<uint64_t, std::pair<uint16_t, uint16_t>> fi;
+    // 8-bit volatile indices
+    std::map<uint8_t, std::unordered_set<uint16_t>> yi, ui, vi;
+    // 16-bit volatile indices
+    std::map<uint16_t, std::unordered_set<uint16_t>> ri;
 };
 
 #endif //VIS_VISUAL_STM_H
