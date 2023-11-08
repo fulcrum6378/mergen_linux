@@ -23,9 +23,6 @@ int main() {
     std::cin.ignore();
     on = false;
 
-    // let the components save their states
-    vis->Stop();
-
     // destruct low-level components
     delete aud_in;
     delete aud_out;

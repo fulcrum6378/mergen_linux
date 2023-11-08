@@ -56,9 +56,10 @@ Camera::Camera(int *exit) {
     ioctl(dev, VIDIOC_STREAMON, &buffer_info.type);
 
     // prepare for analysis
+    recordFuture = recordPromise.get_future();
     segmentation = new Segmentation(&buf);
-    record = new std::thread(&Camera::Record, this);
-    record->detach();
+    record = std::thread(&Camera::Record, this);
+    record.detach();
 }
 
 void Camera::Record() {
@@ -69,24 +70,16 @@ void Camera::Record() {
         segmentation->bufLength = buffer_info.bytesused;
         segmentation->Process();
     }
-}
-
-/** Never merge these into the destructor. */
-void Camera::Stop() {
-    //if (record->joinable()) {
-        print("KIRRRRRRR");
-        record->join();
-        print("FUUUUUUCK");
-    //}
-    delete record;
 #if VISUAL_STM
     // if recording is over, save state of VisualSTM
     segmentation->stm->SaveState();
 #endif
-    ioctl(dev, VIDIOC_STREAMOFF, &buffer_info.bytesused);
+    recordPromise.set_value();
 }
 
 Camera::~Camera() {
+    recordFuture.wait();
     delete segmentation;
+    ioctl(dev, VIDIOC_STREAMOFF, &buffer_info.bytesused);
     close(dev);
 }

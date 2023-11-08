@@ -1,6 +1,7 @@
 #ifndef VIS_CAMERA_H
 #define VIS_CAMERA_H
 
+#include <future>
 #include <thread>
 
 #include "segmentation.hpp"
@@ -18,8 +19,6 @@
 class Camera {
 public:
     explicit Camera(int *exit);
-
-    void Stop();
 
     ~Camera();
 
@@ -42,9 +41,10 @@ private:
     v4l2_buffer buffer_info{};
     unsigned char *buf;
 
-    std::thread *record;
+    std::thread record;
+    std::promise<void> recordPromise;
+    std::future<void> recordFuture;
     Segmentation *segmentation;
-
 };
 
 #endif //VIS_CAMERA_H

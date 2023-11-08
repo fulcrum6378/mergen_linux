@@ -4,7 +4,9 @@
 #include <atomic>
 #include <iostream>
 
-static std::atomic_bool on = true;
+/** Boolean which allows recording of further frames.
+ * it should not be static. */
+inline std::atomic_bool on = true;
 
 inline void footerMsg() {
     std::cout << "Press Enter to stop...";
