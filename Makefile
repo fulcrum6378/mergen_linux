@@ -1,5 +1,5 @@
 MergenLinux:
-	if [ ! -d "build" ]; then mkdir "build"; fi
+	# TODO mkdir build if not exists...
 	c++ -std=c++20 -lpthread -o build/MergenLinux main.cpp \
 	aud/microphone.cpp aud/speaker.cpp \
 	hpt/touchpad.cpp \

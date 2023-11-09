@@ -4,6 +4,8 @@ Started at 16 October 2023, 07:11 as a subproject of [**Mergen**](https://github
 
 Since FreeBSD has limited utilities for webcam, microphone and touch, compared to Linux,
 I decided to first mount Mergen on Linux (Ubuntu) and then for (Free)BSD.
+Since Ubuntu had dropped support for [**Open Sound System (OSS)**](https://en.wikipedia.org/wiki/Open_Sound_System),
+I decided to switch to Fedora.
 
 But then I realised that FreeBSD uses the same webcam drivers of Linux
 ported as [**webcamd**](https://github.com/hselasky/webcamd), so it can easily be modified for use in FreeBSD.
