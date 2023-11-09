@@ -25,7 +25,7 @@ public:
 
 
     // frame ID incrementer
-    uint64_t nextFrameId = 0u;
+    uint64_t nextFrameId = 0ull;
 
 private:
     /** Forgets N of oldest frames. */
@@ -48,7 +48,7 @@ private:
     const std::string dirOut = "vis/mem/";
     std::string dirShapes = "shapes", dirY = "y", dirU = "u", dirV = "v", dirR = "r";
     // ID of earliest frame which is STILL available in memory
-    uint64_t firstFrameId = 0u;
+    uint64_t firstFrameId = 0ull;
     // shape ID incrementer
     uint16_t nextShapeId = 0u;
     // helper maps for altering 'uint8_t' indexes

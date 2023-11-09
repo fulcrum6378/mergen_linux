@@ -16,7 +16,7 @@ VisMemory::VisMemory() {
     string root;
     for (string *dir: {&root, &dirShapes, &dirY, &dirU, &dirV, &dirR}) {
         string branch = *dir;
-        dir->insert(0, dirOut);
+        dir->insert(0u, dirOut);
         if (!branch.empty()) dir->append("/");
         auto path = (*dir).c_str();
         if (stat(path, &sb) != 0) mkdir(path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
@@ -29,10 +29,10 @@ VisMemory::VisMemory() {
         uint16_t cx, uint16_t cy, // central points
         unordered_set<uint16_t> *path
 ) {
-    auto r = static_cast<uint16_t>(round((static_cast<float>(*w) / static_cast<float>(*h)) * 10.0));
+    auto r = static_cast<uint16_t>(round((static_cast<float>(*w) / static_cast<float>(*h)) * 10.0f));
 
     // put data in a buffer
-    uint64_t off = 21u;
+    uint64_t off = 21ull;
     char buf[off + (SHAPE_POINT_BYTES * (*path).size())];
     memcpy(&buf[0], m, 3u); // Mean Colour
     memcpy(&buf[3], &r, 2u); // Ratio
@@ -77,9 +77,8 @@ VisMemory::VisMemory() {
 
 [[maybe_unused]] void VisMemory::Forget() {
     auto t = chrono::system_clock::now();
-    for (uint64_t f = firstFrameId; f < firstFrameId + 1u; f++) {
-        IterateIndex((/*dirFrame + */to_string(f)).c_str(), [](VisMemory *ltm, uint16_t sid
-        ) -> void {
+    for (uint64_t f = firstFrameId; f < firstFrameId + 1ull; f++) {
+        IterateIndex((/*dirFrame + */to_string(f)).c_str(), [](VisMemory *ltm, uint16_t sid) -> void {
             uint8_t y, u, v;
             uint16_t r;
 
@@ -118,7 +117,7 @@ VisMemory::VisMemory() {
     SaveIndexes<uint8_t>(&vm, &dirV);
     SaveIndexes<uint16_t>(&rm, &dirR);
 
-    firstFrameId += 1u;
+    firstFrameId++;
     print("Forgetting time: %lld", chrono::duration_cast<chrono::milliseconds>(
             chrono::system_clock::now() - t).count());
 }
@@ -131,7 +130,7 @@ void VisMemory::IterateIndex(const char *path, void onEach(VisMemory *, uint16_t
     sff.read(buf, sb.st_size);
     sff.close();
     uint16_t i;
-    for (off_t off = 0; off < sb.st_size; off += 2) {
+    for (off_t off = 0; off < static_cast<off_t>(sb.st_size); off += 2) {
         memcpy(&i, &buf[off], 2u);
         onEach(this, i);
     }
@@ -146,7 +145,7 @@ list<uint16_t> VisMemory::ReadIndex(const char *path) {
     sff.close();
     list<uint16_t> l;
     uint16_t i;
-    for (off_t off = 0; off < sb.st_size; off += 2) {
+    for (off_t off = 0; off < static_cast<off_t>(sb.st_size); off += 2) {
         memcpy(&i, &buf[off], 2u);
         l.push_back(i);
     }

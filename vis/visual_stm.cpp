@@ -35,7 +35,7 @@ VisualSTM::VisualSTM() {
         ifstream fif(framesPath, ios::binary);
         fif.read(buf, sb.st_size);
         fif.close();
-        for (off_t off = 0; off < sb.st_size; off += 12) {
+        for (off_t off = 0; off < static_cast<off_t>(sb.st_size); off += 12) {
             memcpy(&fid, &buf[off], 8u);
             memcpy(&beg, &buf[off + 8], 2u);
             memcpy(&end, &buf[off + 10], 2u);
@@ -71,7 +71,7 @@ void VisualSTM::ReadIndices(map<INT, unordered_set<uint16_t>> *indexes, string *
         seq.close();
         unordered_set<uint16_t> l;
         uint16_t i;
-        for (off_t off = 0; off < sb.st_size; off += 2) {
+        for (off_t off = 0; off < static_cast<off_t>(sb.st_size); off += 2) {
             memcpy(&i, &buf[off], 2u);
             l.insert(i);
         }
@@ -106,7 +106,7 @@ void VisualSTM::SaveIndices(map<INT, unordered_set<uint16_t>> *indexes, string *
 
 void VisualSTM::Insert(Segment *seg) {
     // put data in a buffer
-    uint64_t off = 21u;
+    uint64_t off = 21ull;
     char buf[off + (SHAPE_POINT_BYTES * seg->border.size())];
     memcpy(&buf[0], &seg->m, 3u); // Mean Colour
     memcpy(&buf[3], &seg->r, 2u); // Ratio
@@ -132,8 +132,7 @@ void VisualSTM::Insert(Segment *seg) {
     ri[seg->r].insert(nextShapeId);
 
     // increment shape ID
-    nextShapeId++;
-    if (nextShapeId > 65535u) nextShapeId = 0u;
+    nextShapeId++; // it'll be zeroed after crossing 65535u
 }
 
 void VisualSTM::OnFrameFinished() {
@@ -145,8 +144,7 @@ void VisualSTM::OnFrameFinished() {
     framesStored++;
     if (framesStored > MAX_FRAMES_STORED) Forget();
 
-    nextFrameId++;
-    // if (nextFrameId > 18446744073709552000) nextFrameId = 0;
+    nextFrameId++; // it'll be zeroed after crossing 18446744073709551615ull
 }
 
 void VisualSTM::Forget() {

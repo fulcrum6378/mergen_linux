@@ -37,7 +37,7 @@ public:
 
 
     // frame ID incrementer
-    uint64_t nextFrameId = 0u;
+    uint64_t nextFrameId = 0ull;
 private:
     /** Forgets N of oldest frames. */
     void Forget();
@@ -55,7 +55,7 @@ private:
     std::string dirShapes = "shapes", dirY = "y", dirU = "u", dirV = "v", dirR = "r",
             framesFile = "frames", numbersFile = "numbers";
     // ID of earliest frame which is STILL available in memory
-    uint64_t firstFrameId = 0u;
+    uint64_t firstFrameId = 0ull;
     // shape ID incrementer | ID of first shape in THIS FRAME
     uint16_t nextShapeId = 0u, firstShapeId = 0u;
     // total number of frames available in memory

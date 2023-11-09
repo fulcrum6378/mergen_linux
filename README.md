@@ -26,3 +26,9 @@ recording from first detected webcam, microphone and touchpad will begin.
 The main thread listens if you press the Enter button; then it will stop recording.
 
 ~$ `build/MergenLinux`
+
+### License
+
+```
+Copyright © Mahdi Parastesh - All Rights Reserved.
+```

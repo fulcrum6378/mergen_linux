@@ -40,7 +40,7 @@ Camera::Camera(int *exit) {
     v4l2_buffer queryBuffer{};
     queryBuffer.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     queryBuffer.memory = V4L2_MEMORY_MMAP;
-    queryBuffer.index = 0;
+    queryBuffer.index = 0u;
     ioctl(dev, VIDIOC_QUERYBUF, &queryBuffer);
 
     buf = (unsigned char *) mmap(
@@ -52,7 +52,7 @@ Camera::Camera(int *exit) {
     memset(&buffer_info, 0, sizeof(buffer_info));
     buffer_info.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     buffer_info.memory = V4L2_MEMORY_MMAP;
-    buffer_info.index = 0;
+    buffer_info.index = 0u;
     ioctl(dev, VIDIOC_STREAMON, &buffer_info.type);
 
     // prepare for analysis

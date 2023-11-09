@@ -11,7 +11,7 @@
 
 // Shapes' paths can be saved as:     8-bit   or 16-bit
 #define SHAPE_POINT_T uint32_t     // uint16_t   uint32_t
-#define SHAPE_POINT_BYTES 4        // 2,         4
+#define SHAPE_POINT_BYTES 4u       // 2u,        4u
 #define SHAPE_POINT_EACH_BITS 16u  // 8u,        16u
 #define SHAPE_POINT_MAX 65535.0f   // 256.0f,    65535.0f
 

@@ -52,10 +52,7 @@ void Segmentation::Process() {
     uint16_t thisY = 0u, thisX = 0u;
     int64_t last; // must be signed
     bool foundSthToAnalyse = true;
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "ConstantConditionsOC" // false positive
     while (foundSthToAnalyse) {
-#pragma clang diagnostic pop
         foundSthToAnalyse = false;
         for (uint16_t y = thisY; y < H; y++) {
             for (uint16_t x = (y == thisY) ? thisX : 0u; x < W; x++)
@@ -70,7 +67,7 @@ void Segmentation::Process() {
         if (!foundSthToAnalyse) break;
 
         Segment seg{nextSeg};
-        stack.push_back({thisY, thisX, 0});
+        stack.push_back({thisY, thisX, 0u});
         nextSeg++;
         uint16_t y, x, dr;
         while ((last = static_cast<int64_t>(stack.size()) - 1) != -1) {
@@ -85,28 +82,28 @@ void Segmentation::Process() {
                 status[y][x] = seg.id;
                 // left
                 stack[last][2]++;
-                if (x > 0 && status[y][x - 1] == 0 && CompareColours(&arr[y][x], &arr[y][x - 1u])) {
+                if (x > 0u && status[y][x - 1u] == 0 && CompareColours(&arr[y][x], &arr[y][x - 1u])) {
                     stack.push_back({y, static_cast<uint16_t>(x - 1u), 0u});
                     continue;
                 }
             }
-            if (dr <= 1) { // top
+            if (dr <= 1u) { // top
                 stack[last][2]++;
-                if (y > 0 && status[y - 1][x] == 0 && CompareColours(&arr[y][x], &arr[y - 1u][x])) {
+                if (y > 0u && status[y - 1u][x] == 0 && CompareColours(&arr[y][x], &arr[y - 1u][x])) {
                     stack.push_back({static_cast<uint16_t>(y - 1u), x, 0u});
                     continue;
                 }
             }
-            if (dr <= 2) { // right
+            if (dr <= 2u) { // right
                 stack[last][2]++;
-                if (x < (W - 1) && status[y][x + 1] == 0 && CompareColours(&arr[y][x], &arr[y][x + 1u])) {
+                if (x < (W - 1u) && status[y][x + 1u] == 0 && CompareColours(&arr[y][x], &arr[y][x + 1u])) {
                     stack.push_back({y, static_cast<uint16_t>(x + 1u), 0u});
                     continue;
                 }
             }
-            if (dr <= 3) { // bottom
+            if (dr <= 3u) { // bottom
                 stack[last][2]++;
-                if (y < (H - 1) && status[y + 1][x] == 0 && CompareColours(&arr[y][x], &arr[y + 1u][x])) {
+                if (y < (H - 1u) && status[y + 1u][x] == 0 && CompareColours(&arr[y][x], &arr[y + 1u][x])) {
                     stack.push_back({static_cast<uint16_t>(y + 1u), x, 0u});
                     continue;
                 }
@@ -122,8 +119,8 @@ void Segmentation::Process() {
     set<uint32_t> allowedRegions;
     uint8_t nAllowedRegions = 0u;
     for (uint16_t y = 0u; y < h; y++) {
-        for (uint16_t x = 0; x < w; x++) {
-            if (status[y][x] != 0) continue;
+        for (uint16_t x = 0u; x < w; x++) {
+            if (status[y][x] != 0u) continue;
 
             // analyse neighbours
             nSeg = status[ry][rx];
@@ -248,7 +245,7 @@ void Segmentation::Process() {
         // average colours of each segment
         l_ = seg.p.size();
 #if MIN_SEG_SIZE != 1u
-        ys = 0u, us = 0u, vs = 0u;
+        ys = 0ull, us = 0ull, vs = 0ull;
         for (uint32_t p: seg.p) {
             col = reinterpret_cast<array<uint8_t, 3u> *>(&arr[p >> 16][p & 0xFFFF]);
             ys += (*col)[0] * (*col)[0]; // pow(, 2)
@@ -297,7 +294,7 @@ void Segmentation::Process() {
     t0 = chrono::system_clock::now();
     for (y = 0u; y < H; y++) {
         if (y == 0u || y == H - 1u)
-            for (x = 0; x < W; x++)
+            for (x = 0u; x < W; x++)
                 SetAsBorder(y, x);
         else
             for (x = 0u; x < W; x++) {
@@ -359,8 +356,8 @@ void Segmentation::Process() {
                 if (a_u.find(can) != a_u.end() && a_v.find(can) != a_v.end()
                     && a_r.find(can) != a_r.end()) {
                     Segment *prev_seg = &prev_segments[can];
-                    dist = static_cast<float>(sqrt(pow(seg->cx - prev_seg->cx, 2) +
-                                                   pow(seg->cy - prev_seg->cy, 2)));
+                    dist = static_cast<float>(sqrt(std::pow(seg->cx - prev_seg->cx, 2) +
+                                                   std::pow(seg->cy - prev_seg->cy, 2)));
                     if (best == -1) { // NOLINT(bugprone-branch-clone)
                         nearest_dist = dist;
                         best = static_cast<int32_t>(can);
