@@ -56,8 +56,8 @@ Camera::Camera(int *exit) {
     ioctl(dev, VIDIOC_STREAMON, &buffer_info.type);
 
     // prepare for analysis
-    recordFuture = recordPromise.get_future();
     segmentation = new Segmentation(&buf);
+    recFuture = recPromise.get_future();
     record = std::thread(&Camera::Record, this);
     record.detach();
 }
@@ -74,11 +74,11 @@ void Camera::Record() {
     // if recording is over, save state of VisualSTM
     segmentation->stm->SaveState();
 #endif
-    recordPromise.set_value();
+    recPromise.set_value();
 }
 
 Camera::~Camera() {
-    recordFuture.wait();
+    recFuture.wait();
     delete segmentation;
     ioctl(dev, VIDIOC_STREAMOFF, &buffer_info.bytesused);
     close(dev);

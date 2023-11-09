@@ -34,7 +34,7 @@ private:
      * List available formats: $ v4l2-ctl --list-format
      * My laptop (Dell XPS L502X):
      *   [0]: 'YUYV' (YUYV 4:2:2)
-	 *   [1]: 'MJPG' (Motion-JPEG, compressed)
+     *   [1]: 'MJPG' (Motion-JPEG, compressed)
      * Display all data: $ v4l2-ctl --list-devices
      */
     v4l2_format imageFormat{};
@@ -42,8 +42,8 @@ private:
     unsigned char *buf;
 
     std::thread record;
-    std::promise<void> recordPromise;
-    std::future<void> recordFuture;
+    std::promise<void> recPromise;
+    std::future<void> recFuture;
     Segmentation *segmentation;
 };
 
