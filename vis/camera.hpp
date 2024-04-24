@@ -3,18 +3,9 @@
 
 #include <future>
 #include <thread>
-
-#include "segmentation.hpp"
-
-#ifdef __linux__
-
 #include <linux/videodev2.h>
 
-#else
-
-#include "videodev2.hpp"
-
-#endif
+#include "segmentation.hpp"
 
 class Camera {
 public:

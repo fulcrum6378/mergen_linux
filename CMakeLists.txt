@@ -1,9 +1,8 @@
 cmake_minimum_required(VERSION 3.26)
 project(MergenLinux)
-
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(MergenLinux
+add_executable(Mergen
         main.cpp
         global.hpp
 
@@ -23,7 +22,6 @@ add_executable(MergenLinux
         vis/segment.hpp
         vis/segmentation.cpp
         vis/segmentation.hpp
-        vis/videodev2.hpp
         vis/visual_stm.cpp
         vis/visual_stm.hpp
 )
