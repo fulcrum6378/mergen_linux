@@ -7,7 +7,9 @@
 #include <unordered_set>
 
 // minimum allowed number of pixels for a segment to contain (only 1 or higher)
-#define MIN_SEG_SIZE 5u
+#define SEG_MIN_SIZE 5u
+// segment according to first detected colour as base
+#define SEG_BASE_COLOUR false
 
 // Shapes' paths can be saved as:     8-bit   or 16-bit
 #define SHAPE_POINT_T uint32_t     // uint16_t   uint32_t
@@ -18,9 +20,13 @@
 struct Segment {
     // starting from 1
     uint32_t id;
+#if SEG_BASE_COLOUR
+    // base colour (first pixel's)
+    uint8_t (*base)[3];
+#endif
     // pixel coordinates
     std::list<uint32_t> p;
-#if MIN_SEG_SIZE == 1u
+#if SEG_MIN_SIZE == 1u
     // sum of colours
     uint64_t ys, us, vs;
 #endif
@@ -32,7 +38,8 @@ struct Segment {
     std::unordered_set<SHAPE_POINT_T> border;
 
     void ComputeRatioAndCentre() {
-        r = static_cast<uint16_t>(std::round((static_cast<float>(w) / static_cast<float>(h)) * 10.0f));
+        r = static_cast<uint16_t>(std::round(
+                (static_cast<float>(w) / static_cast<float>(h)) * 10.0f));
         cx = (min_x + max_x + 1u) / 2u;
         cy = (min_y + max_y + 1u) / 2u;
     }

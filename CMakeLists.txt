@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.26)
-project(MergenLinux)
+project(Mergen)
 set(CMAKE_CXX_STANDARD 20)
 
 add_executable(Mergen
@@ -17,6 +17,9 @@ add_executable(Mergen
         vis/bitmap.hpp
         vis/camera.cpp
         vis/camera.hpp
+        vis/edge_detection.cpp
+        vis/edge_detection.hpp
+        vis/global.hpp
         vis/memory.cpp
         vis/memory.hpp
         vis/segment.hpp
@@ -24,4 +27,10 @@ add_executable(Mergen
         vis/segmentation.hpp
         vis/visual_stm.cpp
         vis/visual_stm.hpp
+)
+
+include_directories(/usr/local/include/)
+find_package(Threads)
+target_link_libraries(Mergen
+        ${CMAKE_THREAD_LIBS_INIT}
 )

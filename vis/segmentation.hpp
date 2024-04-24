@@ -7,14 +7,9 @@
 #include <unordered_set>
 #include <vector>
 
-#include "visual_stm.hpp"
+#include "global.hpp"
+#include "segment.hpp"
 
-// height of an image frame
-#define H 480u
-// width of an image frame
-#define W 640u
-// 0=>no, 1=>yes, 2=>yes with border highlights
-#define SAVE_BITMAPS 2
 // enable method "Region Growing 2" in favour of the 4th
 #define RG2 false
 // maximum allowed segments to be analysed extensively
@@ -25,10 +20,16 @@
 #define V_RADIUS 10
 #define R_RADIUS 15
 // debug the results using VisualSTM
-#define VISUAL_STM true
+#define VISUAL_STM false
+
+#if VISUAL_STM
+
+#include "visual_stm.hpp"
+
+#endif
 
 /**
- * Image Segmentation, using a Region-Growing method
+ * Image Segmentation, using a Region-Growing method (DEPRECATED)
  *
  * @see <a href="https://github.com/fulcrum6378/mycv/blob/master/segmentation/region_growing_4.py">
  * Region Growing 4 (image segmentation)</a>
@@ -41,6 +42,7 @@ class Segmentation {
 public:
     explicit Segmentation(unsigned char **buf);
 
+    /** Main processing function of Segmentation which execute all the necessary jobs. */
     void Process();
 
     ~Segmentation();
@@ -63,6 +65,8 @@ private:
     void SetAsBorder(uint16_t y, uint16_t x);
 
 
+    /*** IMAGE SEGMENTATION ***/
+
     // buffer of raw image frames in YUYV format
     unsigned char **buf_;
     // multidimensional array of pixels
@@ -82,6 +86,10 @@ private:
     // maps IDs of Segments to their pointers
     std::unordered_map<uint32_t, Segment *> s_index;
 
+    /*** OBJECT TRACKING ***/
+
+    // incrementer of the segments IDs of the volatile indices
+    uint16_t sidInc = 0u;
     // 8-bit volatile indices (those preceding with `_` temporarily contain indices of current frame)
     std::map<uint8_t, std::unordered_set<uint16_t>> yi, _yi, ui, _ui, vi, _vi;
     // 16-bit volatile indices

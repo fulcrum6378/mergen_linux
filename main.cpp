@@ -7,7 +7,7 @@
 #include "vis/camera.hpp"
 
 int main() {
-    // construct low-level components (sensors/controls)
+    // construct the low-level components (sensors/controls)
     int exit = 0;
     auto *aud_in = new Microphone(&exit);
     if (exit != 0) return 10 + exit;
@@ -18,16 +18,17 @@ int main() {
     auto vis = new Camera(&exit);
     if (exit != 0) return 40 + exit;
 
-    // listen for a stop signal
+    // listen for a stop signal from user
+    on = true;
     print("");
     std::cin.ignore();
     on = false;
 
-    // destruct low-level components
+    // destruct the low-level components
     delete aud_in;
     delete aud_out;
     delete hpt;
     delete vis;
 
-    return 0;
+    return exit;
 }
