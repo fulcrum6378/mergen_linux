@@ -7,6 +7,8 @@
       <w>perror</w>
       <w>prot</w>
       <w>segs</w>
+      <w>wunknown</w>
+      <w>yuyv</w>
     </words>
   </dictionary>
 </component>

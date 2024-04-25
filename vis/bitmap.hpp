@@ -1,7 +1,11 @@
 #ifndef VIS_BITMAP_H
 #define VIS_BITMAP_H
 
+#include <filesystem>
 #include <fstream>
+#include <sys/stat.h>
+
+#include "global.hpp"
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "OCUnusedGlobalDeclarationInspection"
@@ -26,21 +30,16 @@ struct bmpfile_dib_info {
     uint16_t bits_per_pixel;
     uint32_t compression;
     uint32_t bmp_byte_size;
-    int32_t hres;
-    int32_t vres;
+    int32_t h_res;
+    int32_t v_res;
     uint32_t num_colors;
     uint32_t num_important_colors;
 };
 
 #pragma clang diagnostic pop
 
-static const int16_t w = 640, h = 480;
 static const std::string dirBitmap("vis/bmp/");
 static uint32_t frameId = 1u;
-
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "UnreachableCode"
-#pragma ide diagnostic ignored "ConstantConditionsOC"
 
 class Bitmap {
 public:
@@ -53,7 +52,7 @@ public:
                 std::filesystem::remove_all(entry.path());
     }
 
-    [[maybe_unused]] static void save(unsigned char arr[h][w][3]) {
+    [[maybe_unused]] static void save(unsigned char arr[H][W][3]) {
         std::ofstream bmp(dirBitmap + std::to_string(frameId) + ".bmp", std::ios::binary);
         frameId++;
 
@@ -62,24 +61,24 @@ public:
         bmpfile_header header = {0};
         header.bmp_offset =
                 sizeof(bmpfile_magic) + sizeof(bmpfile_header) + sizeof(bmpfile_dib_info);
-        header.file_size = header.bmp_offset + (h * 3 + w % 4) * h;
+        header.file_size = header.bmp_offset + (H * 3 + W % 4) * H;
         bmp.write((char *) (&header), sizeof(header));
         bmpfile_dib_info dib_info = {0};
         dib_info.header_size = sizeof(bmpfile_dib_info);
-        dib_info.width = w;
-        dib_info.height = h;
-        dib_info.num_planes = 1;
-        dib_info.bits_per_pixel = 24;
-        dib_info.compression = 0;
-        dib_info.bmp_byte_size = 0;
-        dib_info.hres = 2835;
-        dib_info.vres = 2835;
-        dib_info.num_colors = 0;
-        dib_info.num_important_colors = 0;
+        dib_info.width = W;
+        dib_info.height = H;
+        dib_info.num_planes = 1u;
+        dib_info.bits_per_pixel = 24u;
+        dib_info.compression = 0u;
+        dib_info.bmp_byte_size = 0u;
+        dib_info.h_res = 2835;
+        dib_info.v_res = 2835;
+        dib_info.num_colors = 0u;
+        dib_info.num_important_colors = 0u;
         bmp.write((char *) &dib_info, sizeof(dib_info));
 
-        for (auto yy = (int16_t) (h - 1); yy >= 0; yy--) {
-            for (int16_t xx = 0; xx < w; xx++) {
+        for (auto yy = (int16_t) (H - 1); yy >= 0; yy--) {
+            for (int16_t xx = 0; xx < W; xx++) {
                 double y = static_cast<double>(arr[yy][xx][0]),
                         u = static_cast<double>(arr[yy][xx][1]),
                         v = static_cast<double>(arr[yy][xx][2]),
@@ -97,12 +96,10 @@ public:
                 bmp.put(static_cast<char>(g));
                 bmp.put(static_cast<char>(r));
             }
-            for (int i = 0; i < (w % 4); i++) bmp.put(0); // both 'ide diagnostic' items are only for this line!
+            for (int i = 0; i < (W % 4); i++) bmp.put(0); // both 'ide diagnostic' items are only for this line!
         }
         bmp.close();
     }
 };
-
-#pragma clang diagnostic pop
 
 #endif //VIS_BITMAP_H

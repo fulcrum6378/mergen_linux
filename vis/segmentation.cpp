@@ -1,7 +1,7 @@
 #include <algorithm> // std::sort
 #include <chrono>
 #include <cmath>
-#include <filesystem>
+#include <cstring> // memset
 #include <set> // RG2
 
 #include "../global.hpp"

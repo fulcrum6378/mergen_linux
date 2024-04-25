@@ -1,5 +1,5 @@
 #include <cstring>
-#include <errno.h> // errno for ioctl: https://en.wikipedia.org/wiki/Errno.h#GLIBC_macros
+#include <cerrno> // ioctl
 #include <fcntl.h> // O_RDWR (oflag)
 #include <iostream> // perror
 #include <sys/ioctl.h>

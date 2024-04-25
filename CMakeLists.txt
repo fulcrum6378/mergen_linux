@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.26)
 project(Mergen)
-set(CMAKE_CXX_STANDARD 20)
+
+set(CMAKE_VERBOSE_MAKEFILE on)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20 -Wpedantic")
 
 add_executable(Mergen
         main.cpp

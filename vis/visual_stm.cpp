@@ -31,7 +31,7 @@ VisualSTM::VisualSTM() {
         uint64_t fid;
         uint16_t beg, end;
         stat(framesPath.c_str(), &sb);
-        char buf[sb.st_size];
+        char *buf = new char[sb.st_size];
         ifstream fif(framesPath, ios::binary);
         fif.read(buf, sb.st_size);
         fif.close();
@@ -41,6 +41,7 @@ VisualSTM::VisualSTM() {
             memcpy(&end, &buf[off + 10], 2u);
             fi[fid] = pair(beg, end);
         }
+        delete[] buf;
         framesStored = fi.size();
     }
 
@@ -65,7 +66,7 @@ void VisualSTM::ReadIndices(map<INT, unordered_set<uint16_t>> *indexes, string *
             filesystem::path{*dir})) {
         const char *path = reinterpret_cast<const char *>(ent.path().c_str());
         stat(path, &sb);
-        char buf[sb.st_size];
+        char *buf = new char[sb.st_size];
         ifstream seq(path, ios::binary);
         seq.read(buf, sb.st_size);
         seq.close();
@@ -75,13 +76,11 @@ void VisualSTM::ReadIndices(map<INT, unordered_set<uint16_t>> *indexes, string *
             memcpy(&i, &buf[off], 2u);
             l.insert(i);
         }
+        delete[] buf;
         (*indexes)[static_cast<uint16_t>(stoul(ent.path().filename().c_str()))] = l;
         remove(path);
     }
 }
-
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "UnusedParameter" // false positive
 
 template<class INT>
 void VisualSTM::SaveIndices(map<INT, unordered_set<uint16_t>> *indexes, string *dir) {
@@ -89,7 +88,7 @@ void VisualSTM::SaveIndices(map<INT, unordered_set<uint16_t>> *indexes, string *
     uint32_t off;
     for (pair<const INT, unordered_set<uint16_t>> &index: (*indexes)) {
         if (index.second.empty()) continue;
-        char buf[index.second.size() * 2u];
+        char *buf = new char[index.second.size() * 2u];
         off = 0u;
         for (uint16_t sid: index.second) {
             memcpy(&buf[off], &sid, 2u);
@@ -99,15 +98,14 @@ void VisualSTM::SaveIndices(map<INT, unordered_set<uint16_t>> *indexes, string *
         ofstream sff(path, ios::binary);
         sff.write(buf, sizeof(buf));
         sff.close();
+        delete[] buf;
     }
 }
-
-#pragma clang diagnostic pop
 
 void VisualSTM::Insert(Segment *seg) {
     // put data in a buffer
     uint64_t off = 21ull;
-    char buf[off + (SHAPE_POINT_BYTES * seg->border.size())];
+    char *buf = new char[off + (SHAPE_POINT_BYTES * seg->border.size())];
     memcpy(&buf[0], &seg->m, 3u); // Mean Colour
     memcpy(&buf[3], &seg->r, 2u); // Ratio
     memcpy(&buf[5], &nextFrameId, 8u); // Frame ID
@@ -124,6 +122,7 @@ void VisualSTM::Insert(Segment *seg) {
     ofstream shf(dirShapes + to_string(nextShapeId), ios::binary);
     shf.write(buf, static_cast<streamsize>(sizeof(buf)));
     shf.close();
+    delete[] buf;
 
     // update the volatile indices
     yi[seg->m[0]].insert(nextShapeId);
@@ -188,7 +187,7 @@ void VisualSTM::SaveState() {
     SaveIndices<uint16_t>(&ri, &dirR);
 
     // save file `frames`
-    char b_f[fi.size() * 12u];
+    char *b_f = new char[fi.size() * 12u];
     uint32_t off = 0;
     for (pair<uint64_t, pair<uint16_t, uint16_t>> f: fi) {
         memcpy(&b_f[off], &f.first, 8u);
@@ -201,6 +200,7 @@ void VisualSTM::SaveState() {
     ofstream fif(dirOut + framesFile, ios::binary);
     fif.write(b_f, static_cast<int32_t>(sizeof(b_f)));
     fif.close();
+    delete[] b_f;
 
     // save file `numbers`
     char b_n[18];

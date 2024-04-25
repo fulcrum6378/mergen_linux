@@ -1,7 +1,8 @@
-#ifndef GLOBAL_H
-#define GLOBAL_H
+#ifndef MERGEN_GLOBAL_H
+#define MERGEN_GLOBAL_H
 
 #include <atomic>
+#include <cstring> // memset
 #include <iostream>
 
 /** Boolean which allows recording of further frames.
@@ -20,10 +21,10 @@ inline void print(const std::string &s) {
 
 template<typename ... Args>
 inline void print(const std::string &s, Args ... args) {
-    char buf[s.length() + 20u];
+    char buf[100];
     std::snprintf(buf, sizeof(buf), s.c_str(), args...);
     if (!s.empty()) std::cout << "\r" << buf << std::endl;
     if (on) footerMsg();
 }
 
-#endif //GLOBAL_H
+#endif //MERGEN_GLOBAL_H
